@@ -3,8 +3,17 @@
   "name": "Web data monitoring assistant",
   "version": "0.1",
   "description": "Monitor web data changes and notify you of data updates in a timely manner",
-  "permissions": ["storage", "alarms", "notifications", "scripting", "tabs"],
-  "host_permissions": ["<all_urls>"],
+  "permissions": [
+    "offscreen",
+    "storage",
+    "alarms",
+    "notifications",
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "background": {
     "service_worker": "background.js"
   },
@@ -25,10 +34,19 @@
     "extension_pages": "script-src 'self'; object-src 'self'",
     "sandbox": "sandbox allow-scripts; script-src 'self' 'unsafe-eval'; default-src 'self'"
   },
+  "sandbox": {
+    "pages": [
+      "code-executor.html"
+    ]
+  },
   "web_accessible_resources": [
     {
-      "resources": ["code-executor.html"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "code-executor.html"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ]
 }

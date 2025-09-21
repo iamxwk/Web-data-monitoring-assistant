@@ -1,44 +1,36 @@
-// 监听来自background的消息
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'executeCode') {
-    try {
-      // 创建一个安全的执行环境
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
+// code-executor.js
 
-      // 在 iframe 中创建函数执行环境
-      const iframeWindow = iframe.contentWindow;
-      const iframeDocument = iframe.contentDocument;
+// 监听来自 offscreen.js 的 postMessage
+window.addEventListener('message', (event) => {
+  // 注意：在实际产品中，你可能想验证 event.origin 来增加安全性
 
-      // 在 iframe 中直接定义函数
-      iframeWindow.executeUserCode = function(paramName, paramValue, code) {
-        try {
-          // 创建函数体
-          const functionBody = "try { " + code + " } catch(e) { return { error: e.message }; }";
-          const handlerFunction = new Function(paramName, functionBody);
-          const result = handlerFunction(paramValue);
-          return { success: true, result: result };
-        } catch (e) {
-          return { success: false, error: e.message };
-        }
-      };
+  const request = event.data;
+  if(request.action === 'executeCodeInSandbox'){
+    try{
+      // 现在 new Function 不会再报错了，因为它运行在沙箱里
+      const functionBody = `
+      try {
+        ${request.code}
+      } catch(e) {
+        return { __error: e.message }; 
+      }
+ `;
+      //return (${request.code})(${request.paramName});
+      // 注意：这里的 new Function 构造方式稍有不同，以适应通用性
+      // (request.code) 是用户的代码字符串，我们把它包在一个函数里
+      // 然后我们调用这个函数，并传入参数
+      const handlerFunction = new Function(request.paramName, functionBody);
+      const result = handlerFunction(request.paramValue);
 
-      // 执行代码
-      const result = iframeWindow.executeUserCode(request.paramName, request.paramValue, request.code);
+      if(result && result.__error){
+        throw new Error(result.__error);
+      }
 
-      // 清理 iframe
-      document.body.removeChild(iframe);
+      // 通过 postMessage 将结果发回给 offscreen.js
+      window.parent.postMessage({success: true, result: result}, '*');
 
-      // 返回执行结果
-      sendResponse(result);
-    } catch (error) {
-      sendResponse({
-        success: false,
-        error: error.message
-      });
+    }catch(error){
+      window.parent.postMessage({success: false, error: error.message}, '*');
     }
-    // 保持消息通道开放
-    return true;
   }
 });

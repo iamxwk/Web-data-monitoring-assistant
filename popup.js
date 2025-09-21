@@ -14,21 +14,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const importExportText = document.getElementById('importExportText');
     const closeImportExportBtn = document.getElementById('closeImportExportBtn');
     const doImportExportBtn = document.getElementById('doImportExportBtn');
-    
+
     // 全局变量
     let tasks = [];
     let taskToDelete = null;
     let importMode = false;
-    
+
     // 初始化
     loadTasks();
-    
+
     // 事件监听
     addTaskBtn.addEventListener('click', () => {
         // 打开新标签页添加任务
         chrome.tabs.create({ url: chrome.runtime.getURL('task-editor.html') });
     });
-    
+
     importBtn.addEventListener('click', () => {
         importMode = true;
         importExportTitle.textContent = '导入配置';
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
         importExportText.value = '';
         importExportModal.style.display = 'flex';
     });
-    
+
     exportBtn.addEventListener('click', () => {
         importMode = false;
         importExportTitle.textContent = '导出配置';
@@ -44,11 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
         importExportText.value = JSON.stringify(tasks, null, 2);
         importExportModal.style.display = 'flex';
     });
-    
+
     closeImportExportBtn.addEventListener('click', () => {
         importExportModal.style.display = 'none';
     });
-    
+
     doImportExportBtn.addEventListener('click', () => {
         if (importMode) {
             // 导入配置
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         setupTaskAlarm(newTask);
                         return newTask;
                     });
-                    
+
                     chrome.storage.sync.set({ tasks: newTasks }, () => {
                         tasks = newTasks;
                         renderTaskList();
@@ -88,24 +88,24 @@ document.addEventListener('DOMContentLoaded', () => {
             showNotification('配置已复制到剪贴板');
         }
     });
-    
+
     markAllReadBtn.addEventListener('click', () => {
         const updatedTasks = tasks.map(task => ({
             ...task,
             hasChanges: false
         }));
-        
+
         chrome.storage.sync.set({ tasks: updatedTasks }, () => {
             tasks = updatedTasks;
             renderTaskList();
             showNotification('所有任务已标记为已读');
         });
     });
-    
+
     refreshAllBtn.addEventListener('click', () => {
         showNotification('正在刷新所有任务...');
         let completed = 0;
-        
+
         tasks.forEach(task => {
             chrome.runtime.sendMessage({
                 action: 'checkTask',
@@ -119,12 +119,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     });
-    
+
     cancelDeleteBtn.addEventListener('click', () => {
         deleteModal.style.display = 'none';
         taskToDelete = null;
     });
-    
+
     confirmDeleteBtn.addEventListener('click', () => {
         if (taskToDelete) {
             // 清除alarm
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 action: 'removeAlarm',
                 taskId: taskToDelete
             });
-            
+
             // 删除任务
             const updatedTasks = tasks.filter(task => task.id !== taskToDelete);
             chrome.storage.sync.set({ tasks: updatedTasks }, () => {
@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     });
-    
+
     // 加载任务列表
     function loadTasks() {
         chrome.storage.sync.get('tasks', (result) => {
@@ -152,36 +152,38 @@ document.addEventListener('DOMContentLoaded', () => {
             renderTaskList();
         });
     }
-    
+
     // 渲染任务列表
     function renderTaskList() {
         if (tasks.length === 0) {
             taskListElement.innerHTML = '<div class="no-tasks">暂无监控任务，点击"添加任务"创建新任务</div>';
             return;
         }
-        
+
         taskListElement.innerHTML = '';
-        
+
         tasks.forEach(task => {
             const taskElement = document.createElement('div');
             taskElement.className = `task-item ${task.hasChanges ? 'has-changes' : ''}`;
             taskElement.dataset.id = task.id;
-            
+
             // 格式化上次检查时间
-            const lastChecked = task.lastChecked ? 
-                new Date(task.lastChecked).toLocaleString() : 
+            const lastChecked = task.lastChecked ?
+                new Date(task.lastChecked).toLocaleString() :
                 '从未检查';
-            
+
             // 构建任务HTML
             taskElement.innerHTML = `
                 <div class="drag-handle">
                     <i class="fas fa-grip-vertical"></i>
                 </div>
                 <div class="task-content">
-                    <h3 class="task-title">${escapeHtml(task.title)}</h3>
+                    <h3 class="task-title">${escapeHtml(task.title)}&nbsp;<small>${lastChecked}</small></h3>
+                    
+                    
                     <div class="task-info">
-                        <span>周期: ${task.frequency.value} ${task.frequency.unit === 'minute' ? '分钟' : '小时'}</span>
-                        <span>上次检查: ${lastChecked}</span>
+<!--                        <span>周期: ${task.frequency.value} ${task.frequency.unit === 'minute' ? '分钟' : '小时'}</span>-->
+                        <span>${task.currentValue.content}</span>
                         ${task.hasChanges ? '<span style="color: #e74c3c;">有变化</span>' : ''}
                     </div>
                 </div>
@@ -197,19 +199,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                 </div>
             `;
-            
+
             // 添加事件监听
             taskElement.querySelector('.edit-btn').addEventListener('click', () => {
-                chrome.tabs.create({ 
+                chrome.tabs.create({
                     url: `${chrome.runtime.getURL('task-editor.html')}?id=${task.id}`
                 });
             });
-            
+
             taskElement.querySelector('.delete-btn').addEventListener('click', () => {
                 taskToDelete = task.id;
                 deleteModal.style.display = 'flex';
             });
-            
+
             taskElement.querySelector('.refresh-btn').addEventListener('click', () => {
                 showNotification(`正在刷新 "${task.title}"...`);
                 chrome.runtime.sendMessage({
@@ -224,45 +226,45 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             });
-            
+
             taskListElement.appendChild(taskElement);
         });
-        
+
         // 初始化拖拽功能
         initDragAndDrop();
     }
-    
+
     // 初始化拖拽排序
     function initDragAndDrop() {
         const taskItems = document.querySelectorAll('.task-item');
         let draggedItem = null;
-        
+
         taskItems.forEach(item => {
             item.setAttribute('draggable', true);
-            
+
             item.addEventListener('dragstart', () => {
                 draggedItem = item;
                 setTimeout(() => item.classList.add('dragging'), 0);
             });
-            
+
             item.addEventListener('dragend', () => {
                 draggedItem = null;
                 item.classList.remove('dragging');
-                
+
                 // 更新任务顺序
                 const taskIds = Array.from(document.querySelectorAll('.task-item'))
                     .map(item => item.dataset.id);
-                
-                const reorderedTasks = taskIds.map(id => 
+
+                const reorderedTasks = taskIds.map(id =>
                     tasks.find(task => task.id === id)
                 );
-                
+
                 chrome.storage.sync.set({ tasks: reorderedTasks }, () => {
                     tasks = reorderedTasks;
                     showNotification('任务顺序已更新');
                 });
             });
-            
+
             item.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 const afterElement = getDragAfterElement(taskListElement, e.clientY);
@@ -275,11 +277,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-    
+
     // 辅助函数：确定拖拽后元素的位置
     function getDragAfterElement(container, y) {
         const draggableElements = [...container.querySelectorAll('.task-item:not(.dragging)')];
-        
+
         return draggableElements.reduce((closest, child) => {
             const box = child.getBoundingClientRect();
             const offset = y - box.top - box.height / 2;
@@ -290,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
-    
+
     // 设置任务定时
     function setupTaskAlarm(task) {
         chrome.runtime.sendMessage({
@@ -298,12 +300,12 @@ document.addEventListener('DOMContentLoaded', () => {
             task: task
         });
     }
-    
+
     // 生成唯一ID
     function generateId() {
         return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
     }
-    
+
     // 显示通知
     function showNotification(message, isError = false) {
         // 创建临时通知元素
@@ -319,9 +321,9 @@ document.addEventListener('DOMContentLoaded', () => {
         notification.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
         notification.style.zIndex = '1000';
         notification.style.transition = 'opacity 0.3s';
-        
+
         document.body.appendChild(notification);
-        
+
         // 3秒后自动消失
         setTimeout(() => {
             notification.style.opacity = '0';
@@ -330,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 300);
         }, 3000);
     }
-    
+
     // HTML转义
     function escapeHtml(unsafe) {
         if (!unsafe) return '';
@@ -342,4 +344,3 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/'/g, "&#039;");
     }
 });
-    

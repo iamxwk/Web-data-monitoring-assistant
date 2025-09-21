@@ -1,3 +1,40 @@
+const OFFSCREEN_DOCUMENT_PATH = '/offscreen.html';
+
+// 帮助函数，用于创建和检查 Offscreen Document
+async function setupOffscreenDocument() {
+  // 检查是否已有 Offscreen Document
+  if (await chrome.offscreen.hasDocument()) {
+    console.log("Offscreen document already exists.");
+    return;
+  }
+
+  console.log("Creating offscreen document...");
+  // 创建 Offscreen Document
+  await chrome.offscreen.createDocument({
+    url: OFFSCREEN_DOCUMENT_PATH,
+    reasons: [chrome.offscreen.Reason.DOM_PARSER],
+    justification: 'To execute user code in a secure sandbox environment.',
+  });
+}
+
+// 封装的执行用户代码的核心函数
+function executeUserCode(codePayload, sendResponse) {
+  // 1. 确保 Offscreen Document 存在
+  setupOffscreenDocument().then(() => {
+    // 2. 向 Offscreen Document 发送消息来执行代码
+    chrome.runtime.sendMessage(codePayload, (result) => {
+      // 检查 chrome.runtime.lastError，这是处理异步响应的重要步骤
+      if (chrome.runtime.lastError) {
+        sendResponse({ success: false, error: '代码执行失败: ' + chrome.runtime.lastError.message });
+        return;
+      }
+
+      // 3. 将从 offscreen document 收到的结果通过 sendResponse 回传
+      sendResponse(result);
+    });
+  });
+}
+
 // 当扩展安装或更新时
 chrome.runtime.onInstalled.addListener(() => {
   // 初始化存储
@@ -154,6 +191,26 @@ function executeTaskRequest(task){
         })
         .then(response => {
           // 创建一个隐藏的沙箱标签页来执行代码
+          const payload = {
+            action: 'executeCodeInSandbox',
+            paramName: 'response',
+            paramValue: response,
+            code: task.responseHandler
+          };
+
+          // 执行代码并处理最终结果
+          executeUserCode(payload, (result) => {
+            if (result.success) {
+              resolve(result.result);
+              console.log("✅ 代码执行成功! 最终结果:", result.result);
+              // 在实际应用中，你可能会用这个结果更新UI或存储它
+            } else {
+              reject(new Error('处理代码执行错误: ' + result.error));
+
+              console.error("❌ 代码执行失败! 错误信息:", result.error);
+            }
+          });
+          /*
           chrome.tabs.create({
             url: chrome.runtime.getURL('code-executor.html'),
             active: false,
@@ -190,6 +247,7 @@ function executeTaskRequest(task){
               });
             }, 1000);
           });
+           */
         })
         .catch(error => {
           clearTimeout(timeoutId);
@@ -298,6 +356,27 @@ function testHandler(requestConfig, handlerCode, sendResponse){
       })
       .then(response => {
         // 创建一个隐藏的沙箱标签页来执行代码
+
+        const payload = {
+          action: 'executeCodeInSandbox',
+          paramName: 'response',
+          paramValue: response,
+          code: handlerCode
+        };
+
+        // 执行代码并处理最终结果
+        executeUserCode(payload, (result) => {
+          if (result.success) {
+            sendResponse({success: true, result: result.result});
+            console.log("✅ 代码执行成功! 最终结果:", result.result);
+            // 在实际应用中，你可能会用这个结果更新UI或存储它
+          } else {
+            sendResponse({success: false, error: `处理代码执行错误: ${result.error}`});
+
+            console.error("❌ 代码执行失败! 错误信息:", result.error);
+          }
+        });
+        /*
         chrome.tabs.create({
           url: chrome.runtime.getURL('code-executor.html'),
           active: false,
@@ -334,6 +413,7 @@ function testHandler(requestConfig, handlerCode, sendResponse){
             });
           }, 1000);
         });
+        */
       })
       .catch(error => {
         clearTimeout(timeoutId);
