@@ -132,7 +132,6 @@ document.addEventListener('DOMContentLoaded', () => {
         requestBody: requestBody,
         responseHandler: responseHandlerInput.value.trim(),
         // 这些字段在新建时初始化，编辑时保留原有值
-        lastValue: currentTask ? currentTask.lastValue : null,
         currentValue: currentTask ? currentTask.currentValue : null,
         hasChanges: currentTask ? currentTask.hasChanges : false,
         lastChecked: currentTask ? currentTask.lastChecked : null
@@ -210,6 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // 发送测试请求和处理代码
       chrome.runtime.sendMessage({
         action: 'testHandler',
+        currentTask: currentTask,
         requestConfig: requestConfig,
         handlerCode: handlerCode
       }, (response) => {

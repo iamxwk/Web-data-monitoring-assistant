@@ -1,9 +1,9 @@
 const OFFSCREEN_DOCUMENT_PATH = '/offscreen.html';
 
 // 帮助函数，用于创建和检查 Offscreen Document
-async function setupOffscreenDocument() {
+async function setupOffscreenDocument(){
   // 检查是否已有 Offscreen Document
-  if (await chrome.offscreen.hasDocument()) {
+  if(await chrome.offscreen.hasDocument()){
     console.log("Offscreen document already exists.");
     return;
   }
@@ -18,14 +18,14 @@ async function setupOffscreenDocument() {
 }
 
 // 封装的执行用户代码的核心函数
-function executeUserCode(codePayload, sendResponse) {
+function executeUserCode(codePayload, sendResponse){
   // 1. 确保 Offscreen Document 存在
   setupOffscreenDocument().then(() => {
     // 2. 向 Offscreen Document 发送消息来执行代码
     chrome.runtime.sendMessage(codePayload, (result) => {
       // 检查 chrome.runtime.lastError，这是处理异步响应的重要步骤
-      if (chrome.runtime.lastError) {
-        sendResponse({ success: false, error: '代码执行失败: ' + chrome.runtime.lastError.message });
+      if(chrome.runtime.lastError){
+        sendResponse({success: false, error: '代码执行失败: ' + chrome.runtime.lastError.message});
         return;
       }
 
@@ -88,7 +88,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       break;
 
     case 'testHandler':
-      testHandler(request.requestConfig, request.handlerCode, sendResponse);
+      testHandler(request.currentTask, request.requestConfig, request.handlerCode, sendResponse);
       return true;
       break;
   }
@@ -119,9 +119,9 @@ function checkTask(taskId, sendResponse = null){
     }
 
     const task = tasks[taskIndex];
-    
+
     // 检查任务是否启用
-    if (task.enabled === false) {
+    if(task.enabled === false){
       if(sendResponse) sendResponse({success: true, message: '任务已禁用'});
       return;
     }
@@ -130,16 +130,15 @@ function checkTask(taskId, sendResponse = null){
     executeTaskRequest(task)
       .then(processedValue => {
         // 保存上次的值
-        const lastValue = task.currentValue ? task.currentValue.content : null;
+        const currentValue = task.currentValue ? task.currentValue.content : null;
         const newValue = processedValue;
 
         // 检查是否有变化
-        const hasChanges = !isEqual(lastValue, newValue?.content) && lastValue !== null;
+        const hasChanges = !isEqual(currentValue, newValue?.content) && currentValue !== null;
 
         // 更新任务信息
         tasks[taskIndex] = {
           ...task,
-          lastValue: task.currentValue ? {...task.currentValue} : null,
           currentValue: newValue,
           hasChanges: hasChanges || task.hasChanges,
           lastChecked: new Date().toISOString()
@@ -199,20 +198,25 @@ function executeTaskRequest(task){
         })
         .then(response => {
           // 创建一个隐藏的沙箱标签页来执行代码
+          const currentData = {
+            currentValue: task.currentValue,
+            content: response
+          }
+
           const payload = {
             action: 'executeCodeInSandbox',
-            paramName: 'response',
-            paramValue: response,
+            paramName: 'currentData',
+            paramValue: currentData,
             code: task.responseHandler
           };
 
           // 执行代码并处理最终结果
           executeUserCode(payload, (result) => {
-            if (result.success) {
+            if(result.success){
               resolve(result.result);
               console.log("✅ 代码执行成功! 最终结果:", result.result);
               // 在实际应用中，你可能会用这个结果更新UI或存储它
-            } else {
+            }else{
               reject(new Error('处理代码执行错误: ' + result.error));
 
               console.error("❌ 代码执行失败! 错误信息:", result.error);
@@ -332,7 +336,7 @@ function testRequest(requestConfig, sendResponse){
 }
 
 // 测试处理代码
-function testHandler(requestConfig, handlerCode, sendResponse){
+function testHandler(currentTask, requestConfig, handlerCode, sendResponse){
   try{
     // 先执行请求
     const fetchOptions = {
@@ -364,21 +368,26 @@ function testHandler(requestConfig, handlerCode, sendResponse){
       })
       .then(response => {
         // 创建一个隐藏的沙箱标签页来执行代码
-
+        const currentData = {
+          currentValue: currentTask.currentValue,
+          content: response
+        }
+        console.log('task', currentTask);
+        console.log('currentData', currentData);
         const payload = {
           action: 'executeCodeInSandbox',
-          paramName: 'response',
-          paramValue: response,
+          paramName: 'currentData',
+          paramValue: currentData,
           code: handlerCode
         };
 
         // 执行代码并处理最终结果
         executeUserCode(payload, (result) => {
-          if (result.success) {
+          if(result.success){
             sendResponse({success: true, result: result.result});
             console.log("✅ 代码执行成功! 最终结果:", result.result);
             // 在实际应用中，你可能会用这个结果更新UI或存储它
-          } else {
+          }else{
             sendResponse({success: false, error: `处理代码执行错误: ${result.error}`});
 
             console.error("❌ 代码执行失败! 错误信息:", result.error);
@@ -487,16 +496,16 @@ function isEqual(a, b){
 }
 
 // 添加更新浏览器图标上数字显示的函数
-function updateBadgeText() {
+function updateBadgeText(){
   chrome.storage.sync.get('tasks', (result) => {
     const tasks = result.tasks || [];
     const changedTasksCount = tasks.filter(task => task.hasChanges && task.enabled !== false).length;
-    
-    if (changedTasksCount > 0) {
-      chrome.action.setBadgeText({ text: changedTasksCount.toString() });
-      chrome.action.setBadgeBackgroundColor({ color: '#FF0000' }); // 红色背景
-    } else {
-      chrome.action.setBadgeText({ text: '' });
+
+    if(changedTasksCount > 0){
+      chrome.action.setBadgeText({text: changedTasksCount.toString()});
+      chrome.action.setBadgeBackgroundColor({color: '#FF0000'}); // 红色背景
+    }else{
+      chrome.action.setBadgeText({text: ''});
     }
   });
 }

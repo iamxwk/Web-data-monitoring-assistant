@@ -12,9 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const importExportModal = document.getElementById('importExportModal');
     const importExportTitle = document.getElementById('importExportTitle');
     const importExportText = document.getElementById('importExportText');
-    const closeImportExportBtn = document.getElementById('closeImportExportBtn');
     const doImportExportBtn = document.getElementById('doImportExportBtn');
-    
+
     // 添加用于显示变化任务数量的元素引用
     const headerElement = document.querySelector('header');
     let changedTasksIndicator = null;
@@ -42,15 +41,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     exportBtn.addEventListener('click', () => {
-        importMode = false;
-        importExportTitle.textContent = '导出配置';
-        doImportExportBtn.textContent = '复制配置';
-        importExportText.value = JSON.stringify(tasks, null, 2);
-        importExportModal.style.display = 'flex';
-    });
+        // 直接下载配置文件
+        const dataStr = JSON.stringify(tasks, null, 2);
+        const dataBlob = new Blob([dataStr], {type: 'application/json'});
 
-    closeImportExportBtn.addEventListener('click', () => {
-        importExportModal.style.display = 'none';
+        const exportFileName = `Web-data-monitoring-assistant-config-${new Date().toISOString().slice(0, 10)}.json`;
+
+        // 创建下载链接
+        const downloadLink = document.createElement('a');
+        downloadLink.href = URL.createObjectURL(dataBlob);
+        downloadLink.download = exportFileName;
+
+        // 添加到页面并触发下载
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+
+        showNotification('配置已下载');
     });
 
     doImportExportBtn.addEventListener('click', () => {
@@ -64,7 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         const newTask = {
                             ...task,
                             id: generateId(),
-                            lastValue: null,
                             currentValue: null,
                             hasChanges: false,
                             lastChecked: null
@@ -85,11 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 showNotification(`导入失败：${error.message}`, true);
             }
-        } else {
-            // 复制导出配置
-            importExportText.select();
-            document.execCommand('copy');
-            showNotification('配置已复制到剪贴板');
         }
     });
 
@@ -241,24 +242,24 @@ document.addEventListener('DOMContentLoaded', () => {
         initDragAndDrop();
         updateChangedTasksIndicator(); // 更新变化任务指示器
     }
-    
+
     // 更新变化任务指示器
     function updateChangedTasksIndicator() {
         // 移除现有的指示器
         if (changedTasksIndicator) {
             changedTasksIndicator.remove();
         }
-        
+
         // 计算变化的任务数量
         const changedTasksCount = tasks.filter(task => task.hasChanges && task.enabled !== false).length;
-        
+
         // 如果没有变化的任务，则不显示指示器
         if (changedTasksCount === 0) {
             // 更新徽章文本
             updateBadgeText();
             return;
         }
-        
+
         // 创建并添加新的指示器
         changedTasksIndicator = document.createElement('div');
         changedTasksIndicator.className = 'changed-tasks-indicator';
@@ -266,18 +267,18 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="changed-count">${changedTasksCount}</span>
             <span class="changed-label">个任务有变化</span>
         `;
-        
+
         // 将指示器添加到header中
         headerElement.appendChild(changedTasksIndicator);
-        
+
         // 更新徽章文本
         updateBadgeText();
     }
-    
+
     // 更新徽章文本的辅助函数
     function updateBadgeText() {
         const changedTasksCount = tasks.filter(task => task.hasChanges && task.enabled !== false).length;
-        
+
         if (changedTasksCount > 0) {
             chrome.action.setBadgeText({ text: changedTasksCount.toString() });
             chrome.action.setBadgeBackgroundColor({ color: '#FF0000' }); // 红色背景
