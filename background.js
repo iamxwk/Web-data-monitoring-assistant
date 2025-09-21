@@ -119,6 +119,12 @@ function checkTask(taskId, sendResponse = null){
     }
 
     const task = tasks[taskIndex];
+    
+    // 检查任务是否启用
+    if (task.enabled === false) {
+      if(sendResponse) sendResponse({success: true, message: '任务已禁用'});
+      return;
+    }
 
     // 执行请求并处理响应
     executeTaskRequest(task)
@@ -139,8 +145,8 @@ function checkTask(taskId, sendResponse = null){
           lastChecked: new Date().toISOString()
         };
 
-        // 如果有变化且需要弹窗提醒，显示通知
-        if(hasChanges && task.popupNotification){
+        // 修改通知逻辑：检查返回值中的 notify 字段
+        if(newValue && newValue.notify === true && task.popupNotification){
           showNotification(task);
           tasks[taskIndex].hasChanges = true;
         }
@@ -148,6 +154,8 @@ function checkTask(taskId, sendResponse = null){
         // 保存更新
         chrome.storage.sync.set({tasks}, () => {
           if(sendResponse) sendResponse({success: true});
+          // 更新图标上的变化任务数量
+          updateBadgeText();
         });
       })
       .catch(error => {
@@ -477,3 +485,28 @@ function isEqual(a, b){
   // 基本类型直接比较
   return a === b;
 }
+
+// 添加更新浏览器图标上数字显示的函数
+function updateBadgeText() {
+  chrome.storage.sync.get('tasks', (result) => {
+    const tasks = result.tasks || [];
+    const changedTasksCount = tasks.filter(task => task.hasChanges && task.enabled !== false).length;
+    
+    if (changedTasksCount > 0) {
+      chrome.action.setBadgeText({ text: changedTasksCount.toString() });
+      chrome.action.setBadgeBackgroundColor({ color: '#FF0000' }); // 红色背景
+    } else {
+      chrome.action.setBadgeText({ text: '' });
+    }
+  });
+}
+
+// 当扩展启动时更新徽章文本
+chrome.runtime.onStartup.addListener(() => {
+  updateBadgeText();
+});
+
+// 当安装扩展时更新徽章文本
+chrome.runtime.onInstalled.addListener(() => {
+  updateBadgeText();
+});

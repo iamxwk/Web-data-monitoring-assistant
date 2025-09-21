@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const frequencyValueInput = document.getElementById('frequencyValue');
   const frequencyUnitSelect = document.getElementById('frequencyUnit');
   const popupNotificationInput = document.getElementById('popupNotification');
+  const enabledInput = document.getElementById('enabled');
   const requestBodyInput = document.getElementById('requestBody');
   const responseHandlerInput = document.getElementById('responseHandler');
   const testRequestBtn = document.getElementById('testRequestBtn');
@@ -80,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
         frequencyValueInput.value = currentTask.frequency.value;
         frequencyUnitSelect.value = currentTask.frequency.unit;
         popupNotificationInput.checked = currentTask.popupNotification;
+        enabledInput.checked = currentTask.enabled !== false; // 默认为启用
         requestBodyInput.value = typeof currentTask.requestBody === 'string'
           ? currentTask.requestBody
           : JSON.stringify(currentTask.requestBody, null, 2);
@@ -126,6 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
           unit: frequencyUnitSelect.value
         },
         popupNotification: popupNotificationInput.checked,
+        enabled: enabledInput.checked, // 添加启用状态
         requestBody: requestBody,
         responseHandler: responseHandlerInput.value.trim(),
         // 这些字段在新建时初始化，编辑时保留原有值

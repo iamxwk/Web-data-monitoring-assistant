@@ -14,6 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const importExportText = document.getElementById('importExportText');
     const closeImportExportBtn = document.getElementById('closeImportExportBtn');
     const doImportExportBtn = document.getElementById('doImportExportBtn');
+    
+    // 添加用于显示变化任务数量的元素引用
+    const headerElement = document.querySelector('header');
+    let changedTasksIndicator = null;
 
     // 全局变量
     let tasks = [];
@@ -99,6 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
             tasks = updatedTasks;
             renderTaskList();
             showNotification('所有任务已标记为已读');
+            // 更新徽章文本
+            updateBadgeText();
         });
     });
 
@@ -150,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chrome.storage.sync.get('tasks', (result) => {
             tasks = result.tasks || [];
             renderTaskList();
+            updateChangedTasksIndicator(); // 更新变化任务指示器
         });
     }
 
@@ -232,6 +239,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 初始化拖拽功能
         initDragAndDrop();
+        updateChangedTasksIndicator(); // 更新变化任务指示器
+    }
+    
+    // 更新变化任务指示器
+    function updateChangedTasksIndicator() {
+        // 移除现有的指示器
+        if (changedTasksIndicator) {
+            changedTasksIndicator.remove();
+        }
+        
+        // 计算变化的任务数量
+        const changedTasksCount = tasks.filter(task => task.hasChanges && task.enabled !== false).length;
+        
+        // 如果没有变化的任务，则不显示指示器
+        if (changedTasksCount === 0) {
+            // 更新徽章文本
+            updateBadgeText();
+            return;
+        }
+        
+        // 创建并添加新的指示器
+        changedTasksIndicator = document.createElement('div');
+        changedTasksIndicator.className = 'changed-tasks-indicator';
+        changedTasksIndicator.innerHTML = `
+            <span class="changed-count">${changedTasksCount}</span>
+            <span class="changed-label">个任务有变化</span>
+        `;
+        
+        // 将指示器添加到header中
+        headerElement.appendChild(changedTasksIndicator);
+        
+        // 更新徽章文本
+        updateBadgeText();
+    }
+    
+    // 更新徽章文本的辅助函数
+    function updateBadgeText() {
+        const changedTasksCount = tasks.filter(task => task.hasChanges && task.enabled !== false).length;
+        
+        if (changedTasksCount > 0) {
+            chrome.action.setBadgeText({ text: changedTasksCount.toString() });
+            chrome.action.setBadgeBackgroundColor({ color: '#FF0000' }); // 红色背景
+        } else {
+            chrome.action.setBadgeText({ text: '' });
+        }
     }
 
     // 初始化拖拽排序
