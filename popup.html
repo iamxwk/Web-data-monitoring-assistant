@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <style>
+        body {
+            width: 500px;
+            padding: 15px;
+            margin: 0;
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f7;
+            color: #333;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 18px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h1 img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #0078d7;
+            color: white;
+        }
+
+        button:hover {
+            background-color: #005a9e;
+        }
+
+        button.secondary {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        button.secondary:hover {
+            background-color: #e0e0e0;
+        }
+
+        #taskList {
+            margin-top: 15px;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .task-item {
+            background-color: white;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background-color 0.2s;
+        }
+
+        .task-item:hover {
+            background-color: #f9f9f9;
+        }
+
+        .task-item.has-changes {
+            border-left: 3px solid #e74c3c;
+        }
+
+        .drag-handle {
+            color: #aaa;
+            cursor: move;
+            padding: 4px;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-weight: 500;
+            margin: 0 0 4px 0;
+            color: #2c3e50;
+        }
+
+        .task-info {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            gap: 15px;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .task-btn {
+            background: none;
+            border: none;
+            padding: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .task-btn:hover {
+            background: none;
+            color: #0078d7;
+        }
+
+        .no-tasks {
+            text-align: center;
+            padding: 30px 10px;
+            color: #777;
+            font-size: 14px;
+            background-color: white;
+            border-radius: 6px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .modal-header {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        textarea#importExportText {
+            width: 100%;
+            min-height: 150px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1>
+            <img src="icon/icon.png" alt="Logo">
+          Web data monitoring assistant
+        </h1>
+    </header>
+
+    <div class="button-group">
+        <button id="addTaskBtn">
+            <i class="fas fa-plus"></i> 添加任务
+        </button>
+        <button id="importBtn" class="secondary">
+            <i class="fas fa-upload"></i> 导入配置
+        </button>
+        <button id="exportBtn" class="secondary">
+            <i class="fas fa-download"></i> 导出配置
+        </button>
+        <button id="markAllReadBtn" class="secondary">
+            <i class="fas fa-check"></i> 全部已读
+        </button>
+        <button id="refreshAllBtn" class="secondary">
+            <i class="fas fa-sync"></i> 全部刷新
+        </button>
+    </div>
+
+    <div id="taskList">
+        <!-- 任务列表将通过JavaScript动态生成 -->
+        <div class="no-tasks">暂无监控任务，点击"添加任务"创建新任务</div>
+    </div>
+
+    <!-- 删除确认模态框 -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>确认删除</h3>
+            </div>
+            <div class="modal-body">
+                确定要删除这个任务吗？此操作不可撤销。
+            </div>
+            <div class="modal-footer">
+                <button id="cancelDeleteBtn" class="secondary">取消</button>
+                <button id="confirmDeleteBtn">删除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导入/导出模态框 -->
+    <div class="modal" id="importExportModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="importExportTitle">导入配置</h3>
+            </div>
+            <div class="modal-body">
+                <textarea id="importExportText"></textarea>
+                <p style="font-size: 12px; color: #666; margin-top: 8px;">
+                    配置数据为JSON格式，用于备份或迁移您的监控任务
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button id="closeImportExportBtn" class="secondary">关闭</button>
+                <button id="doImportExportBtn">导入</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

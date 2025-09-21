@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Web data monitoring assistant",
+  "version": "0.1",
+  "description": "Monitor web data changes and notify you of data updates in a timely manner",
+  "permissions": ["storage", "alarms", "notifications", "scripting", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon/icon.png",
+      "48": "icon/icon.png",
+      "128": "icon/icon.png"
+    }
+  },
+  "icons": {
+    "16": "icon/icon.png",
+    "48": "icon/icon.png",
+    "128": "icon/icon.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'",
+    "sandbox": "sandbox allow-scripts; script-src 'self' 'unsafe-eval'; default-src 'self'"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["code-executor.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
+

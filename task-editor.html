@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>编辑任务</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f7;
+            color: #333;
+        }
+
+        header {
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h1 img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #444;
+        }
+
+        input[type="text"],
+        input[type="url"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .frequency-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .frequency-group input {
+            flex: 0 0 100px;
+        }
+
+        .frequency-group select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+
+        .code-helper {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            padding: 8px;
+            background-color: #f8f8f8;
+            border-radius: 4px;
+            border-left: 3px solid #ddd;
+        }
+
+        .test-btn {
+            margin-top: 10px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .test-btn:hover {
+            background-color: #27ae60;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        button {
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        #cancelBtn {
+            background-color: #f0f0f0;
+            color: #333;
+            border: none;
+        }
+
+        #cancelBtn:hover {
+            background-color: #e0e0e0;
+        }
+
+        #saveBtn {
+            background-color: #0078d7;
+            color: white;
+            border: none;
+        }
+
+        #saveBtn:hover {
+            background-color: #005a9e;
+        }
+
+        /* 测试结果模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            color: #666;
+        }
+
+        .modal-body {
+            flex: 1;
+            overflow: auto;
+        }
+
+        .result-container {
+            background-color: #f8f8f8;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .result-success {
+            border-left: 3px solid #2ecc71;
+        }
+
+        .result-error {
+            border-left: 3px solid #e74c3c;
+            color: #c0392b;
+        }
+
+        .modal-footer {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            text-align: right;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1>
+            <img src="icon/icon.png">
+            <span id="pageTitle">添加新任务</span>
+        </h1>
+    </header>
+
+    <form id="taskForm">
+        <input type="hidden" id="taskId">
+
+        <div class="form-group">
+            <label for="taskTitle">任务标题</label>
+            <input type="text" id="taskTitle" required placeholder="例如：阿里云账户余额监控">
+        </div>
+
+        <div class="form-group">
+            <label for="pageUrl">页面URL</label>
+            <input type="url" id="pageUrl" required placeholder="例如：https://usercenter2.aliyun.com/">
+        </div>
+
+        <div class="form-group">
+            <label>监听周期</label>
+            <div class="frequency-group">
+                <input type="number" id="frequencyValue" min="1" value="5" required>
+                <select id="frequencyUnit">
+                    <option value="minute">分钟</option>
+                    <option value="hour">小时</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="popupNotification" checked>
+                <label for="popupNotification">数据变化时弹窗提醒</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="requestBody">jQuery请求体配置</label>
+            <textarea id="requestBody" required placeholder='例如：{ "type": "get", "url": "https://usercenter2.aliyun.com/api/account/queryMyAmount.json", "dataType": "json", "timeout": 7000 }'></textarea>
+            <div class="code-helper">
+                <p>请输入符合jQuery.ajax参数的JSON对象，至少包含type和url字段。</p>
+                <p>示例：<code>{ "type": "get", "url": "https://api.example.com/data", "dataType": "json" }</code></p>
+            </div>
+            <button type="button" class="test-btn" id="testRequestBtn">
+                <i class="fas fa-play"></i> 测试请求
+            </button>
+        </div>
+
+        <div class="form-group">
+            <label for="responseHandler">返回值处理代码</label>
+            <textarea id="responseHandler" required placeholder='例如：return { "content": response.amount, "extra": { "time": new Date() } };'></textarea>
+            <div class="code-helper">
+                <p>请输入JavaScript代码，必须返回包含content和extra字段的对象。</p>
+                <p>content：用于比较数据变化的值</p>
+                <p>extra：额外信息，可在后续处理中使用</p>
+                <p>示例：<code>return { "content": response.data.value, "extra": { "timestamp": response.timestamp } };</code></p>
+            </div>
+            <button type="button" class="test-btn" id="testHandlerBtn">
+                <i class="fas fa-play"></i> 测试处理代码
+            </button>
+        </div>
+
+        <div class="button-group">
+            <button type="button" id="cancelBtn">
+                <i class="fas fa-times"></i> 取消
+            </button>
+            <button type="submit" id="saveBtn">
+                <i class="fas fa-save"></i> 保存任务
+            </button>
+        </div>
+    </form>
+
+    <!-- 测试结果模态框 -->
+    <div class="modal" id="testResultModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="resultTitle">测试结果</h3>
+                <button class="close-modal" id="closeResultModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="result-container" id="resultContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="closeResultBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="task-editor.js"></script>
+</body>
+</html>
