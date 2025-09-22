@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     <div class="task-info">
 <!--                        <span>周期: ${task.frequency.value} ${task.frequency.unit === 'minute' ? '分钟' : '小时'}</span>-->
-                        <span>${task.currentValue.content}</span>
+                        <span>${task.currentValue ? task.currentValue.content : ''}</span>
                         ${task.hasChanges ? '<span style="color: #e74c3c;">有变化</span>' : ''}
                     </div>
                 </div>

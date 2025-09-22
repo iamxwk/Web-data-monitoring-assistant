@@ -449,7 +449,7 @@ function testHandler(currentTask, requestConfig, handlerCode, sendResponse){
 function showNotification(task){
   chrome.notifications.create(`task_${task.id}_notification`, {
     type: 'basic',
-    iconUrl: 'res/icon.png',
+    iconUrl: 'icon/icon.png',
     title: '数据变化提醒',
     message: `任务 "${task.title}" 检测到数据变化`,
     priority: 2
