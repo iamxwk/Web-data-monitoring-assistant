@@ -178,8 +178,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 渲染任务列表
-  function renderTaskList(){
-    if(tasks.length === 0){
+  function renderTaskList() {
+    if (tasks.length === 0) {
       taskListElement.innerHTML = '<div class="no-tasks">暂无监控任务，点击"添加任务"创建新任务</div>';
       return;
     }
@@ -201,39 +201,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 构建任务HTML
       taskElement.innerHTML = `
-                <div class="drag-handle">
-                    <i class="fas fa-grip-vertical"></i>
-                </div>
-                <div class="task-icon">
-                    <img src="${iconSource}" alt="Task Icon" width="24" height="24">
-                </div>
-                <div class="task-content">
-                    <h3 class="task-title">${escapeHtml(task.title)}&nbsp;<small>${lastChecked}</small></h3>
-                    
-                    <div class="task-info">
-<!--                        <span>周期: ${task.frequency.value} ${task.frequency.unit === 'minute' ? '分钟' : '小时'}</span>-->
-                        <span>${task.currentValue ? task.currentValue.content : ''}</span>
+        <div class="drag-handle">
+          <i class="fas fa-grip-vertical"></i>
+        </div>
+        <div class="task-icon">
+          <img src="${iconSource}" alt="Task Icon" width="24" height="24" loading="lazy">
+        </div>
+        <div class="task-content">
+          <h3 class="task-title">${escapeHtml(task.title)}&nbsp;<small>${lastChecked}</small></h3>
+          
+          <div class="task-info">
+<!--            <span>周期: ${task.frequency.value} ${task.frequency.unit === 'minute' ? '分钟' : '小时'}</span>-->
+            <span>${task.currentValue ? task.currentValue.content : ''}</span>
 <!--                        ${task.hasChanges ? '<span style="color: #e74c3c;">有变化</span>' : ''}-->
-                    </div>
-                </div>
-                <div class="task-actions">
-                    <button class="task-btn edit-btn" title="编辑">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="task-btn delete-btn" title="删除">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                    <button class="task-btn refresh-btn" title="刷新">
-                        <i class="fas fa-sync"></i>
-                    </button>
-                </div>
-            `;
+          </div>
+        </div>
+        <div class="task-actions">
+          <button class="task-btn edit-btn" title="编辑">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="task-btn delete-btn" title="删除">
+            <i class="fas fa-trash"></i>
+          </button>
+          <button class="task-btn refresh-btn" title="刷新">
+            <i class="fas fa-sync"></i>
+          </button>
+        </div>
+      `;
 
       // 添加点击任务标题跳转到编辑页面并标记为已读的事件监听
       const taskTitleElement = taskElement.querySelector('.task-title');
       taskTitleElement.addEventListener('click', () => {
         // 如果任务有变化，则标记为已读
-        if(task.hasChanges){
+        if (task.hasChanges) {
           markTaskAsRead(task.id);
         }
 
@@ -261,10 +261,10 @@ document.addEventListener('DOMContentLoaded', () => {
           action: 'checkTask',
           taskId: task.id
         }, (response) => {
-          if(response && response.success){
+          if (response && response.success) {
             loadTasks();
             showNotification(`已刷新 "${task.title}"`);
-          }else{
+          } else {
             showNotification(`刷新失败: ${response.error}`, true);
           }
         });

@@ -98,6 +98,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // 将图片URL转换为base64编码
   function convertImageToBase64(url) {
     return new Promise((resolve, reject) => {
+      //暂时不再使用base64
+      resolve(null);
+      return;
+
       // 如果URL为空或不是有效的URL，则直接resolve空值
       if (!url || !url.trim()) {
         resolve(null);
