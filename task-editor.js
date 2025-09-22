@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const taskIdInput = document.getElementById('taskId');
   const taskTitleInput = document.getElementById('taskTitle');
   const pageUrlInput = document.getElementById('pageUrl');
+  const iconUrlInput = document.getElementById('iconUrl');
   const frequencyValueInput = document.getElementById('frequencyValue');
   const frequencyUnitSelect = document.getElementById('frequencyUnit');
   const popupNotificationInput = document.getElementById('popupNotification');
@@ -78,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         taskIdInput.value = currentTask.id;
         taskTitleInput.value = currentTask.title;
         pageUrlInput.value = currentTask.pageUrl;
+        iconUrlInput.value = currentTask.iconUrl || '';
         frequencyValueInput.value = currentTask.frequency.value;
         frequencyUnitSelect.value = currentTask.frequency.unit;
         popupNotificationInput.checked = currentTask.popupNotification;
@@ -123,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const taskData = {
         title: taskTitleInput.value.trim(),
         pageUrl: pageUrlInput.value.trim(),
+        iconUrl: iconUrlInput.value.trim() || undefined,
         frequency: {
           value: parseInt(frequencyValueInput.value, 10),
           unit: frequencyUnitSelect.value

@@ -185,6 +185,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="drag-handle">
                     <i class="fas fa-grip-vertical"></i>
                 </div>
+                <div class="task-icon">
+                    <img src="${task.iconUrl ? task.iconUrl :'icon/icon.png'}" alt="Task Icon" width="24" height="24">
+                </div>
                 <div class="task-content">
                     <h3 class="task-title">${escapeHtml(task.title)}&nbsp;<small>${lastChecked}</small></h3>
                     
@@ -274,12 +277,12 @@ document.addEventListener('DOMContentLoaded', () => {
             tasks = updatedTasks;
             // 更新徽章文本
             updateBadgeText();
-            
+
             // 通知 background script 更新徽章
             chrome.runtime.sendMessage({
                 action: 'updateBadge'
             });
-            
+
             // 显示通知
             showNotification('任务已标记为已读');
         });
