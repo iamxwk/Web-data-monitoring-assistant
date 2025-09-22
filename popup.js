@@ -302,6 +302,9 @@ document.addEventListener('DOMContentLoaded', () => {
         action: 'updateBadge'
       });
 
+      // 重新渲染任务列表以更新UI
+      renderTaskList();
+
       // 显示通知
       showNotification('任务已标记为已读');
     });
