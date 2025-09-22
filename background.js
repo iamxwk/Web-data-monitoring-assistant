@@ -38,9 +38,9 @@ function executeUserCode(codePayload, sendResponse){
 // 当扩展安装或更新时
 chrome.runtime.onInstalled.addListener(() => {
   // 初始化存储
-  chrome.storage.sync.get('tasks', (result) => {
+  chrome.storage.local.get('tasks', (result) => {
     if(!result.tasks){
-      chrome.storage.sync.set({tasks: []});
+      chrome.storage.local.set({tasks: []});
     }else{
       // 为已存在的任务设置alarm
       result.tasks.forEach(task => {
@@ -120,7 +120,7 @@ function setupTaskAlarm(task){
 
 // 检查任务的API变化
 function checkTask(taskId, sendResponse = null){
-  chrome.storage.sync.get('tasks', (result) => {
+  chrome.storage.local.get('tasks', (result) => {
     const tasks = result.tasks || [];
     const taskIndex = tasks.findIndex(t => t.id === taskId);
 
@@ -162,7 +162,7 @@ function checkTask(taskId, sendResponse = null){
         }
 
         // 保存更新
-        chrome.storage.sync.set({tasks}, () => {
+        chrome.storage.local.set({tasks}, () => {
           if(sendResponse) sendResponse({success: true});
           // 更新图标上的变化任务数量
           updateBadgeText();
@@ -510,7 +510,7 @@ function isEqual(a, b){
 
 // 添加更新浏览器图标上数字显示的函数
 function updateBadgeText(){
-  chrome.storage.sync.get('tasks', (result) => {
+  chrome.storage.local.get('tasks', (result) => {
     const tasks = result.tasks || [];
     const changedTasksCount = tasks.filter(task => task.hasChanges && task.enabled !== false).length;
 

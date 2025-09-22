@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     exportBtn.addEventListener('click', () => {
+
         // 直接下载配置文件
         const dataStr = JSON.stringify(tasks, null, 2);
         const dataBlob = new Blob([dataStr], {type: 'application/json'});
@@ -79,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         return newTask;
                     });
 
-                    chrome.storage.sync.set({ tasks: newTasks }, () => {
+                    chrome.storage.local.set({ tasks: newTasks }, () => {
                         tasks = newTasks;
                         renderTaskList();
                         importExportModal.style.display = 'none';
@@ -100,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
             hasChanges: false
         }));
 
-        chrome.storage.sync.set({ tasks: updatedTasks }, () => {
+        chrome.storage.local.set({ tasks: updatedTasks }, () => {
             tasks = updatedTasks;
             renderTaskList();
             showNotification('所有任务已标记为已读');
@@ -142,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 删除任务
             const updatedTasks = tasks.filter(task => task.id !== taskToDelete);
-            chrome.storage.sync.set({ tasks: updatedTasks }, () => {
+            chrome.storage.local.set({ tasks: updatedTasks }, () => {
                 tasks = updatedTasks;
                 renderTaskList();
                 deleteModal.style.display = 'none';
@@ -154,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 加载任务列表
     function loadTasks() {
-        chrome.storage.sync.get('tasks', (result) => {
+        chrome.storage.local.get('tasks', (result) => {
             tasks = result.tasks || [];
             renderTaskList();
             updateChangedTasksIndicator(); // 更新变化任务指示器
@@ -180,13 +181,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 new Date(task.lastChecked).toLocaleString() :
                 '从未检查';
 
+            // 选择图标源：优先使用base64图标，其次使用URL图标，最后使用默认图标
+            const iconSource = task.iconBase64 || task.iconUrl || 'icon/icon.png';
+
             // 构建任务HTML
             taskElement.innerHTML = `
                 <div class="drag-handle">
                     <i class="fas fa-grip-vertical"></i>
                 </div>
                 <div class="task-icon">
-                    <img src="${task.iconUrl ? task.iconUrl :'icon/icon.png'}" alt="Task Icon" width="24" height="24">
+                    <img src="${iconSource}" alt="Task Icon" width="24" height="24">
                 </div>
                 <div class="task-content">
                     <h3 class="task-title">${escapeHtml(task.title)}&nbsp;<small>${lastChecked}</small></h3>
@@ -194,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="task-info">
 <!--                        <span>周期: ${task.frequency.value} ${task.frequency.unit === 'minute' ? '分钟' : '小时'}</span>-->
                         <span>${task.currentValue ? task.currentValue.content : ''}</span>
-                        ${task.hasChanges ? '<span style="color: #e74c3c;">有变化</span>' : ''}
+<!--                        ${task.hasChanges ? '<span style="color: #e74c3c;">有变化</span>' : ''}-->
                     </div>
                 </div>
                 <div class="task-actions">
@@ -273,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // 保存更新后的任务列表
-        chrome.storage.sync.set({ tasks: updatedTasks }, () => {
+        chrome.storage.local.set({ tasks: updatedTasks }, () => {
             tasks = updatedTasks;
             // 更新徽章文本
             updateBadgeText();
@@ -357,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     tasks.find(task => task.id === id)
                 );
 
-                chrome.storage.sync.set({ tasks: reorderedTasks }, () => {
+                chrome.storage.local.set({ tasks: reorderedTasks }, () => {
                     tasks = reorderedTasks;
                     showNotification('任务顺序已更新');
                 });
@@ -399,46 +403,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 显示通知
+    function showNotification(message, isError = false) {
+        const notificationElement = document.getElementById('notification');
+        const notificationTextElement = document.getElementById('notificationText');
+
+        if(notificationTextElement){
+          notificationTextElement.textContent = message;
+          notificationElement.className = isError ? 'notification error' : 'notification';
+          notificationElement.style.display = 'block';
+
+          setTimeout(() => {
+            notificationElement.style.display = 'none';
+          }, 3000);
+        }
+    }
+
     // 生成唯一ID
     function generateId() {
         return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
     }
 
-    // 显示通知
-    function showNotification(message, isError = false) {
-        // 创建临时通知元素
-        const notification = document.createElement('div');
-        notification.textContent = message;
-        notification.style.position = 'fixed';
-        notification.style.bottom = '20px';
-        notification.style.right = '20px';
-        notification.style.padding = '10px 15px';
-        notification.style.borderRadius = '4px';
-        notification.style.color = 'white';
-        notification.style.backgroundColor = isError ? '#e74c3c' : '#2ecc71';
-        notification.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-        notification.style.zIndex = '1000';
-        notification.style.transition = 'opacity 0.3s';
+    // 转义HTML特殊字符
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
 
-        document.body.appendChild(notification);
-
-        // 3秒后自动消失
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            setTimeout(() => {
-                document.body.removeChild(notification);
-            }, 300);
-        }, 3000);
-    }
-
-    // HTML转义
-    function escapeHtml(unsafe) {
-        if (!unsafe) return '';
-        return unsafe
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+        return text.replace(/[&<>"']/g, (m) => map[m]);
     }
 });

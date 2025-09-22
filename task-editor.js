@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 加载任务用于编辑
   function loadTaskForEditing(taskId){
-    chrome.storage.sync.get('tasks', (result) => {
+    chrome.storage.local.get('tasks', (result) => {
       const tasks = result.tasks || [];
       currentTask = tasks.find(task => task.id === taskId);
 
@@ -92,6 +92,49 @@ document.addEventListener('DOMContentLoaded', () => {
         showError('未找到指定的任务');
         setTimeout(() => window.close(), 2000);
       }
+    });
+  }
+
+  // 将图片URL转换为base64编码
+  function convertImageToBase64(url) {
+    return new Promise((resolve, reject) => {
+      // 如果URL为空或不是有效的URL，则直接resolve空值
+      if (!url || !url.trim()) {
+        resolve(null);
+        return;
+      }
+
+      // 创建一个图片元素
+      const img = new Image();
+      img.crossOrigin = 'Anonymous'; // 处理跨域问题
+
+      img.onload = () => {
+        try {
+          // 创建canvas元素
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+
+          // 设置canvas尺寸与图片一致
+          canvas.width = img.width;
+          canvas.height = img.height;
+
+          // 将图片绘制到canvas上
+          ctx.drawImage(img, 0, 0);
+
+          // 将canvas转换为base64字符串
+          const base64 = canvas.toDataURL('image/png');
+          resolve(base64);
+        } catch (error) {
+          reject(new Error('图像转换失败: ' + error.message));
+        }
+      };
+
+      img.onerror = () => {
+        reject(new Error('图像加载失败'));
+      };
+
+      // 开始加载图片
+      img.src = url;
     });
   }
 
@@ -141,33 +184,48 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       // 获取现有任务列表
-      chrome.storage.sync.get('tasks', (result) => {
+      chrome.storage.local.get('tasks', (result) => {
         let tasks = result.tasks || [];
 
-        if(currentTask){
-          // 更新现有任务
-          taskData.id = currentTask.id;
-          const taskIndex = tasks.findIndex(t => t.id === currentTask.id);
-          if(taskIndex !== -1){
-            tasks[taskIndex] = taskData;
-          }
-        }else{
-          // 添加新任务
-          taskData.id = generateId();
-          tasks.push(taskData);
-        }
+        // 转换图标为base64并保存
+        convertImageToBase64(iconUrlInput.value.trim())
+          .then(iconBase64 => {
+            // 如果转换成功，添加到任务数据中
+            if (iconBase64) {
+              taskData.iconBase64 = iconBase64;
+            }
+          })
+          .catch(error => {
+            // 即使图标转换失败，也要继续保存任务
+            console.warn('图标转换失败:', error.message);
+          })
+          .finally(() => {
+            // 无论图标转换成功与否，都要保存任务
+            if(currentTask){
+              // 更新现有任务
+              taskData.id = currentTask.id;
+              const taskIndex = tasks.findIndex(t => t.id === currentTask.id);
+              if(taskIndex !== -1){
+                tasks[taskIndex] = taskData;
+              }
+            }else{
+              // 添加新任务
+              taskData.id = generateId();
+              tasks.push(taskData);
+            }
 
-        // 保存任务并设置定时
-        chrome.storage.sync.set({tasks}, () => {
-          // 设置定时任务
-          chrome.runtime.sendMessage({
-            action: 'setupAlarm',
-            task: taskData
-          }, () => {
-            // 关闭标签页
-            window.close();
+            // 保存任务并设置定时
+            chrome.storage.local.set({tasks}, () => {
+              // 设置定时任务
+              chrome.runtime.sendMessage({
+                action: 'setupAlarm',
+                task: taskData
+              }, () => {
+                // 关闭标签页
+                window.close();
+              });
+            });
           });
-        });
       });
 
     }catch(error){
