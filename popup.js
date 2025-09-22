@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 事件监听
   addTaskBtn.addEventListener('click', () => {
     // 打开新标签页添加任务
-    chrome.tabs.create({ url: chrome.runtime.getURL('task-editor.html') });
+    chrome.tabs.create({url: chrome.runtime.getURL('task-editor.html')});
   });
 
   importBtn.addEventListener('click', () => {
@@ -37,12 +37,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // 监听文件选择事件
     fileInput.addEventListener('change', (event) => {
       const file = event.target.files[0];
-      if (file) {
+      if(file){
         const reader = new FileReader();
         reader.onload = (e) => {
-          try {
+          try{
             const importedTasks = JSON.parse(e.target.result);
-            if (Array.isArray(importedTasks)) {
+            if(Array.isArray(importedTasks)){
               // 为导入的任务生成新ID并设置alarm
               const newTasks = importedTasks.map(task => {
                 const newTask = {
@@ -56,15 +56,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 return newTask;
               });
 
-              chrome.storage.local.set({ tasks: newTasks }, () => {
+              chrome.storage.local.set({tasks: newTasks}, () => {
                 tasks = newTasks;
                 renderTaskList();
                 showNotification('配置导入成功');
               });
-            } else {
+            }else{
               showNotification('导入失败：配置格式不正确', true);
             }
-          } catch (error) {
+          }catch(error){
             showNotification(`导入失败：${error.message}`, true);
           }
         };
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hasChanges: false
     }));
 
-    chrome.storage.local.set({ tasks: updatedTasks }, () => {
+    chrome.storage.local.set({tasks: updatedTasks}, () => {
       tasks = updatedTasks;
       renderTaskList();
       showNotification('所有任务已标记为已读');
@@ -113,20 +113,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
   refreshAllBtn.addEventListener('click', () => {
     showNotification('正在刷新所有任务...');
-    let completed = 0;
 
-    tasks.forEach(task => {
-      chrome.runtime.sendMessage({
-        action: 'checkTask',
-        taskId: task.id
-      }, (response) => {
-        completed++;
-        if (completed === tasks.length) {
-          loadTasks();
-          showNotification('所有任务已刷新');
+    // 使用async/await按顺序刷新任务
+    async function refreshTasksSequentially(){
+      for(const task of tasks){
+        try{
+          await new Promise((resolve, reject) => {
+            chrome.runtime.sendMessage({
+              action: 'checkTask',
+              taskId: task.id
+            }, (response) => {
+              if(chrome.runtime.lastError){
+                reject(chrome.runtime.lastError);
+              }else{
+                resolve(response);
+              }
+            });
+          });
+        }catch(error){
+          console.error(`刷新任务 "${task.title}" 失败:`, error);
         }
-      });
-    });
+      }
+
+      loadTasks();
+      showNotification('所有任务已刷新');
+    }
+
+    // 开始按顺序刷新任务
+    refreshTasksSequentially();
   });
 
   cancelDeleteBtn.addEventListener('click', () => {
@@ -135,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   confirmDeleteBtn.addEventListener('click', () => {
-    if (taskToDelete) {
+    if(taskToDelete){
       // 清除alarm
       chrome.runtime.sendMessage({
         action: 'removeAlarm',
@@ -144,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 删除任务
       const updatedTasks = tasks.filter(task => task.id !== taskToDelete);
-      chrome.storage.local.set({ tasks: updatedTasks }, () => {
+      chrome.storage.local.set({tasks: updatedTasks}, () => {
         tasks = updatedTasks;
         renderTaskList();
         deleteModal.style.display = 'none';
@@ -155,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // 加载任务列表
-  function loadTasks() {
+  function loadTasks(){
     chrome.storage.local.get('tasks', (result) => {
       tasks = result.tasks || [];
       renderTaskList();
@@ -164,8 +178,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 渲染任务列表
-  function renderTaskList() {
-    if (tasks.length === 0) {
+  function renderTaskList(){
+    if(tasks.length === 0){
       taskListElement.innerHTML = '<div class="no-tasks">暂无监控任务，点击"添加任务"创建新任务</div>';
       return;
     }
@@ -219,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const taskTitleElement = taskElement.querySelector('.task-title');
       taskTitleElement.addEventListener('click', () => {
         // 如果任务有变化，则标记为已读
-        if (task.hasChanges) {
+        if(task.hasChanges){
           markTaskAsRead(task.id);
         }
 
@@ -247,10 +261,10 @@ document.addEventListener('DOMContentLoaded', () => {
           action: 'checkTask',
           taskId: task.id
         }, (response) => {
-          if (response && response.success) {
+          if(response && response.success){
             loadTasks();
             showNotification(`已刷新 "${task.title}"`);
-          } else {
+          }else{
             showNotification(`刷新失败: ${response.error}`, true);
           }
         });
@@ -265,10 +279,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 标记任务为已读
-  function markTaskAsRead(taskId) {
+  function markTaskAsRead(taskId){
     // 更新任务列表中的任务状态
     const updatedTasks = tasks.map(task => {
-      if (task.id === taskId) {
+      if(task.id === taskId){
         return {
           ...task,
           hasChanges: false
@@ -278,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 保存更新后的任务列表
-    chrome.storage.local.set({ tasks: updatedTasks }, () => {
+    chrome.storage.local.set({tasks: updatedTasks}, () => {
       tasks = updatedTasks;
       // 更新徽章文本
       updateBadgeText();
@@ -294,9 +308,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 更新变化任务指示器
-  function updateChangedTasksIndicator() {
+  function updateChangedTasksIndicator(){
     // 移除现有的指示器
-    if (changedTasksIndicator) {
+    if(changedTasksIndicator){
       changedTasksIndicator.remove();
     }
 
@@ -304,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const changedTasksCount = tasks.filter(task => task.hasChanges && task.enabled !== false).length;
 
     // 如果没有变化的任务，则不显示指示器
-    if (changedTasksCount === 0) {
+    if(changedTasksCount === 0){
       // 更新徽章文本
       updateBadgeText();
       return;
@@ -326,19 +340,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 更新徽章文本的辅助函数
-  function updateBadgeText() {
+  function updateBadgeText(){
     const changedTasksCount = tasks.filter(task => task.hasChanges && task.enabled !== false).length;
 
-    if (changedTasksCount > 0) {
-      chrome.action.setBadgeText({ text: changedTasksCount.toString() });
-      chrome.action.setBadgeBackgroundColor({ color: '#FF0000' }); // 红色背景
-    } else {
-      chrome.action.setBadgeText({ text: '' });
+    if(changedTasksCount > 0){
+      chrome.action.setBadgeText({text: changedTasksCount.toString()});
+      chrome.action.setBadgeBackgroundColor({color: '#FF0000'}); // 红色背景
+    }else{
+      chrome.action.setBadgeText({text: ''});
     }
   }
 
   // 初始化拖拽排序
-  function initDragAndDrop() {
+  function initDragAndDrop(){
     const taskItems = document.querySelectorAll('.task-item');
     let draggedItem = null;
 
@@ -362,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
           tasks.find(task => task.id === id)
         );
 
-        chrome.storage.local.set({ tasks: reorderedTasks }, () => {
+        chrome.storage.local.set({tasks: reorderedTasks}, () => {
           tasks = reorderedTasks;
           showNotification('任务顺序已更新');
         });
@@ -372,9 +386,9 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const afterElement = getDragAfterElement(taskListElement, e.clientY);
         const draggable = document.querySelector('.dragging');
-        if (afterElement == null) {
+        if(afterElement == null){
           taskListElement.appendChild(draggable);
-        } else {
+        }else{
           taskListElement.insertBefore(draggable, afterElement);
         }
       });
@@ -382,22 +396,22 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 辅助函数：确定拖拽后元素的位置
-  function getDragAfterElement(container, y) {
+  function getDragAfterElement(container, y){
     const draggableElements = [...container.querySelectorAll('.task-item:not(.dragging)')];
 
     return draggableElements.reduce((closest, child) => {
       const box = child.getBoundingClientRect();
       const offset = y - box.top - box.height / 2;
-      if (offset < 0 && offset > closest.offset) {
-        return { offset: offset, element: child };
-      } else {
+      if(offset < 0 && offset > closest.offset){
+        return {offset: offset, element: child};
+      }else{
         return closest;
       }
-    }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }, {offset: Number.NEGATIVE_INFINITY}).element;
   }
 
   // 设置任务定时
-  function setupTaskAlarm(task) {
+  function setupTaskAlarm(task){
     chrome.runtime.sendMessage({
       action: 'setupAlarm',
       task: task
@@ -405,39 +419,42 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 显示通知
-  function showNotification(message, isError = false) {
+  var tim;
+  function showNotification(message, isError = false){
     // 创建临时通知元素
-    const notification = document.createElement('div');
-    notification.textContent = message;
-    notification.style.position = 'fixed';
-    notification.style.bottom = '20px';
-    notification.style.right = '20px';
-    notification.style.padding = '10px 15px';
-    notification.style.borderRadius = '4px';
-    notification.style.color = 'white';
-    notification.style.backgroundColor = isError ? '#e74c3c' : '#2ecc71';
-    notification.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-    notification.style.zIndex = '1000';
-    notification.style.transition = 'opacity 0.3s';
+    $('.div_notification').remove();
+    clearTimeout(tim);
 
-    document.body.appendChild(notification);
+    const $notification = $('<div>')
+      .text(message)
+      .css({
+        position: 'fixed',
+        top: '10px',
+        right: '10px',
+        padding: '10px 15px',
+        borderRadius: '4px',
+        color: 'white',
+        backgroundColor: isError ? '#e74c3c' : '#2ecc71',
+        boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+        zIndex: 1000
+      })
+      .addClass('div_notification');
+    $('body').append($notification);
 
-    // 3秒后自动消失
-    setTimeout(() => {
-      notification.style.opacity = '0';
-      setTimeout(() => {
-        document.body.removeChild(notification);
-      }, 300);
-    }, 3000);
+    tim = setTimeout(() => {
+      $notification.stop(true, true).fadeOut(function(){
+        $(this).remove();
+      });
+    }, 1000);
   }
 
   // 生成唯一ID
-  function generateId() {
+  function generateId(){
     return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
   }
 
   // 转义HTML特殊字符
-  function escapeHtml(text) {
+  function escapeHtml(text){
     const map = {
       '&': '&amp;',
       '<': '&lt;',
