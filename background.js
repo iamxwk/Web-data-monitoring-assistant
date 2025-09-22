@@ -198,15 +198,16 @@ function executeTaskRequest(task){
         })
         .then(response => {
           // 创建一个隐藏的沙箱标签页来执行代码
-          const currentData = {
-            currentValue: task.currentValue,
+          const taskData = {
+            prevContent: task.currentValue ? task.currentValue.content : undefined,
+            prevExtra: task.currentValue ? task.currentValue.extra : undefined,
             content: response
           }
 
           const payload = {
             action: 'executeCodeInSandbox',
-            paramName: 'currentData',
-            paramValue: currentData,
+            paramName: 'taskData',
+            paramValue: taskData,
             code: task.responseHandler
           };
 
@@ -368,16 +369,17 @@ function testHandler(currentTask, requestConfig, handlerCode, sendResponse){
       })
       .then(response => {
         // 创建一个隐藏的沙箱标签页来执行代码
-        const currentData = {
-          currentValue: currentTask.currentValue,
+        const taskData = {
+          prevContent: currentTask.currentValue ? currentTask.currentValue.content : undefined,
+          prevExtra: currentTask.currentValue ? currentTask.currentValue.extra : undefined,
           content: response
         }
         console.log('task', currentTask);
-        console.log('currentData', currentData);
+        console.log('taskData', taskData);
         const payload = {
           action: 'executeCodeInSandbox',
-          paramName: 'currentData',
-          paramValue: currentData,
+          paramName: 'taskData',
+          paramValue: taskData,
           code: handlerCode
         };
 
