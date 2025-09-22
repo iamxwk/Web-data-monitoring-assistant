@@ -370,8 +370,8 @@ function testHandler(currentTask, requestConfig, handlerCode, sendResponse){
       .then(response => {
         // 创建一个隐藏的沙箱标签页来执行代码
         const taskData = {
-          prevContent: currentTask.currentValue ? currentTask.currentValue.content : undefined,
-          prevExtra: currentTask.currentValue ? currentTask.currentValue.extra : undefined,
+          prevContent: currentTask && currentTask.currentValue ? currentTask.currentValue.content : undefined,
+          prevExtra: currentTask && currentTask.currentValue ? currentTask.currentValue.extra : undefined,
           content: response
         }
         console.log('task', currentTask);

@@ -188,7 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="task-content">
                     <h3 class="task-title">${escapeHtml(task.title)}&nbsp;<small>${lastChecked}</small></h3>
                     
-                    
                     <div class="task-info">
 <!--                        <span>周期: ${task.frequency.value} ${task.frequency.unit === 'minute' ? '分钟' : '小时'}</span>-->
                         <span>${task.currentValue ? task.currentValue.content : ''}</span>
@@ -207,6 +206,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                 </div>
             `;
+
+            // 添加点击任务标题跳转到编辑页面的事件监听
+            const taskTitleElement = taskElement.querySelector('.task-title');
+            taskTitleElement.addEventListener('click', () => {
+                chrome.tabs.create({
+                    url: `${task.pageUrl}`
+                });
+            });
 
             // 添加事件监听
             taskElement.querySelector('.edit-btn').addEventListener('click', () => {
