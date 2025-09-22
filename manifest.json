@@ -32,7 +32,7 @@
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'",
-    "sandbox": "sandbox allow-scripts; script-src 'self' 'unsafe-eval'; default-src 'self'"
+    "sandbox": "sandbox allow-scripts; script-src 'self' 'unsafe-eval'; default-src 'self'; connect-src *;"
   },
   "sandbox": {
     "pages": [

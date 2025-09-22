@@ -161,8 +161,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 基本验证处理代码
       if(!responseHandlerInput.value.includes('return') ||
-        !responseHandlerInput.value.includes('content') ||
-        !responseHandlerInput.value.includes('extra')){
+        !responseHandlerInput.value.includes('content')
+        // ||!responseHandlerInput.value.includes('extra')
+      ){
         if(!confirm('处理代码似乎不完整，可能无法正常工作。是否继续保存？')){
           return;
         }
