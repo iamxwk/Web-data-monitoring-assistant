@@ -207,9 +207,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
 
-            // 添加点击任务标题跳转到编辑页面的事件监听
+            // 添加点击任务标题跳转到编辑页面并标记为已读的事件监听
             const taskTitleElement = taskElement.querySelector('.task-title');
             taskTitleElement.addEventListener('click', () => {
+                // 如果任务有变化，则标记为已读
+                if (task.hasChanges) {
+                    markTaskAsRead(task.id);
+                }
+
+                // 跳转到编辑页面
                 chrome.tabs.create({
                     url: `${task.pageUrl}`
                 });
@@ -248,6 +254,35 @@ document.addEventListener('DOMContentLoaded', () => {
         // 初始化拖拽功能
         initDragAndDrop();
         updateChangedTasksIndicator(); // 更新变化任务指示器
+    }
+
+    // 标记任务为已读
+    function markTaskAsRead(taskId) {
+        // 更新任务列表中的任务状态
+        const updatedTasks = tasks.map(task => {
+            if (task.id === taskId) {
+                return {
+                    ...task,
+                    hasChanges: false
+                };
+            }
+            return task;
+        });
+
+        // 保存更新后的任务列表
+        chrome.storage.sync.set({ tasks: updatedTasks }, () => {
+            tasks = updatedTasks;
+            // 更新徽章文本
+            updateBadgeText();
+            
+            // 通知 background script 更新徽章
+            chrome.runtime.sendMessage({
+                action: 'updateBadge'
+            });
+            
+            // 显示通知
+            showNotification('任务已标记为已读');
+        });
     }
 
     // 更新变化任务指示器

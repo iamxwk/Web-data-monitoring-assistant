@@ -91,6 +91,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       testHandler(request.currentTask, request.requestConfig, request.handlerCode, sendResponse);
       return true;
       break;
+      
+    case 'ajaxRequest':
+      handleAjaxRequest(request, sender, sendResponse);
+      return true;
+      break;
+      
+    case 'updateBadge':
+      updateBadgeText();
+      sendResponse({success: true});
+      return true;
+      break;
   }
 });
 
