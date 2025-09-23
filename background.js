@@ -35,9 +35,7 @@ function executeUserCode(codePayload, sendResponse){
   });
 }
 
-// 当扩展安装或更新时
-chrome.runtime.onInstalled.addListener(() => {
-  // 初始化存储
+function activateAlarms(){
   chrome.storage.local.get('tasks', (result) => {
     if(!result.tasks){
       chrome.storage.local.set({tasks: []});
@@ -48,6 +46,12 @@ chrome.runtime.onInstalled.addListener(() => {
       });
     }
   });
+}
+
+// 当扩展安装或更新时
+chrome.runtime.onInstalled.addListener(() => {
+  // 初始化存储
+  activateAlarms();
 });
 
 // 监听alarm触发
@@ -55,6 +59,13 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   if(alarm.name.startsWith('task_')){
     const taskId = alarm.name.split('task_')[1];
     checkTask(taskId);
+  }
+});
+
+chrome.idle.onStateChanged.addListener((newState) => {
+  if(newState === 'active'){
+    // 电脑从休眠中恢复，检查任务是否需要立即执行
+    activateAlarms();
   }
 });
 
@@ -102,11 +113,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({success: true});
       return true;
       break;
-      
+
     case 'languageChanged':
       // 语言更改时更新所有相关的UI
       updateBadgeText();
-      
+
       // 通知所有tabs语言已更改
       chrome.tabs.query({}, (tabs) => {
         tabs.forEach(tab => {
@@ -118,7 +129,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           });
         });
       });
-      
+
       sendResponse({success: true});
       break;
   }
@@ -537,11 +548,11 @@ function updateBadgeText(){
     }else{
       chrome.action.setBadgeText({text: ''});
     }
-    
+
     // 根据用户设置的语言更新徽章标题
     let badgeTitle = 'Web data monitoring assistant';
-    if (settings.language) {
-      switch(settings.language) {
+    if(settings.language){
+      switch(settings.language){
         case 'zh_CN':
           badgeTitle = '网页数据监控助手';
           break;
@@ -553,7 +564,7 @@ function updateBadgeText(){
           badgeTitle = 'Web data monitoring assistant';
       }
     }
-    
+
     chrome.action.setTitle({title: badgeTitle});
   });
 }

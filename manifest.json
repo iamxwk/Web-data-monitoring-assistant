@@ -10,7 +10,8 @@
     "alarms",
     "notifications",
     "scripting",
-    "tabs"
+    "tabs",
+    "idle"
   ],
   "host_permissions": [
     "<all_urls>"
