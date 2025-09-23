@@ -91,12 +91,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       testHandler(request.currentTask, request.requestConfig, request.handlerCode, sendResponse);
       return true;
       break;
-      
+
     case 'ajaxRequest':
       handleAjaxRequest(request, sender, sendResponse);
       return true;
       break;
-      
+
     case 'updateBadge':
       updateBadgeText();
       sendResponse({success: true});
@@ -144,14 +144,10 @@ function checkTask(taskId, sendResponse = null){
         const currentValue = task.currentValue ? task.currentValue.content : null;
         const newValue = processedValue;
 
-        // 检查是否有变化
-        const hasChanges = !isEqual(currentValue, newValue?.content) && currentValue !== null;
-
         // 更新任务信息
         tasks[taskIndex] = {
           ...task,
           currentValue: newValue,
-          hasChanges: hasChanges || task.hasChanges,
           lastChecked: new Date().toISOString()
         };
 
