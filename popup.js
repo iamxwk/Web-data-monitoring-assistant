@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // 如果一个任务有变化而另一个没有，则有变化的排在前面
       if (a.hasChanges && !b.hasChanges) return -1;
       if (!a.hasChanges && b.hasChanges) return 1;
-      
+
       // 如果两个任务都有变化或都没有变化，则保持原有顺序
       return 0;
     });
@@ -249,9 +249,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 跳转到编辑页面
-        chrome.tabs.create({
-          url: `${task.pageUrl}`
-        });
+        setTimeout(function () {
+          chrome.tabs.create({
+            url: `${task.pageUrl}`
+          });
+        },100)
       });
 
       // 添加事件监听
@@ -305,19 +307,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // 保存更新后的任务列表
     chrome.storage.local.set({tasks: updatedTasks}, () => {
       tasks = updatedTasks;
-      // 更新徽章文本
-      updateBadgeText();
-
-      // 通知 background script 更新徽章
-      chrome.runtime.sendMessage({
-        action: 'updateBadge'
-      });
-
-      // 重新渲染任务列表以更新UI
       renderTaskList();
-
-      // 显示通知
       showNotification('任务已标记为已读');
+      updateBadgeText();
+      // chrome.runtime.sendMessage({
+      //   action: 'updateBadge'
+      // });
     });
   }
 
