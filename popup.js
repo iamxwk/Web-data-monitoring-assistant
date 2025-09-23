@@ -119,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
       for(const task of tasks){
         try{
           await new Promise((resolve, reject) => {
+            showNotification(`正在刷新 "${task.title}"...`);
             chrome.runtime.sendMessage({
               action: 'checkTask',
               taskId: task.id
