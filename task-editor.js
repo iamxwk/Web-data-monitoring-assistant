@@ -32,6 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // 当前编辑的任务
   let currentTask = null;
 
+  // 初始化国际化
+  i18nInit();
+
   // 初始化
   init();
 
@@ -43,11 +46,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if(taskId){
       // 编辑现有任务
-      pageTitleElement.textContent = '编辑任务';
+      pageTitleElement.setAttribute('data-i18n', 'edit_task');
+      pageTitleElement.textContent = chrome.i18n.getMessage('edit_task');
       loadTaskForEditing(taskId);
     }else{
       // 新增任务
-      pageTitleElement.textContent = '添加新任务';
+      pageTitleElement.setAttribute('data-i18n', 'add_new_task');
+      pageTitleElement.textContent = chrome.i18n.getMessage('add_new_task');
       // 设置默认请求配置
       requestTypeSelect.value = 'get';
       requestDataTypeSelect.value = 'json';
@@ -77,9 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
     requestDataTypeSelect.addEventListener('change', updateRequestBody);
     requestTimeoutInput.addEventListener('input', updateRequestBody);
     requestUrlInput.addEventListener('input', updateRequestBody);
-    
-    // 初始化国际化
-    i18nInit();
   }
 
   // 根据表单字段更新请求体
@@ -286,12 +288,12 @@ document.addEventListener('DOMContentLoaded', () => {
         requestConfig: requestConfig
       }, (response) => {
         if(chrome.runtime.lastError){
-          showTestResult(false, '请求失败: ' + chrome.runtime.lastError.message);
+          showTestResult(false, '' + chrome.runtime.lastError.message);
           return;
         }
 
         if(response.success){
-          showTestResult(true, '请求成功', response.result);
+          showTestResult(true, '', response.result);
         }else{
           showTestResult(false, response.error);
         }
@@ -316,12 +318,12 @@ document.addEventListener('DOMContentLoaded', () => {
         handlerCode: handlerCode
       }, (response) => {
         if(chrome.runtime.lastError){
-          showTestResult(false, '处理测试失败: ' + chrome.runtime.lastError.message);
+          showTestResult(false, '' + chrome.runtime.lastError.message);
           return;
         }
 
         if(response.success){
-          showTestResult(true, '处理代码执行成功', response.result);
+          showTestResult(true, '', response.result);
         }else{
           showTestResult(false, response.error);
         }
@@ -334,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 显示测试结果
   function showTestResult(success, message, result = null){
-    resultTitleElement.textContent = success ? '测试成功' : '测试失败';
+    resultTitleElement.textContent = success ? chrome.i18n.getMessage('test_successful') : chrome.i18n.getMessage('test_failed');
     resultTitleElement.style.color = success ? '#2ecc71' : '#e74c3c';
 
     let content = message;
@@ -361,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 监听来自background的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'languageChanged') {
+  if(request.action === 'languageChanged'){
     // 重新加载页面以应用新语言
     location.reload();
     sendResponse({success: true});

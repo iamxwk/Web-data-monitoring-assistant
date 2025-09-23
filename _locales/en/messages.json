@@ -262,5 +262,13 @@
   "settings_saved": {
     "message": "Settings saved",
     "description": "Settings saved notification"
+  },
+  "test_successful": {
+    "message": "Test successful",
+    "description": ""
+  },
+  "test_failed": {
+    "message": "Test failed",
+    "description": ""
   }
 }
