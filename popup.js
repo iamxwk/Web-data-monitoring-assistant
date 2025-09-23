@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 初始化
   loadTasks();
+  i18nInit();
 
   // 事件监听
   addTaskBtn.addEventListener('click', () => {
@@ -59,13 +60,13 @@ document.addEventListener('DOMContentLoaded', () => {
               chrome.storage.local.set({tasks: newTasks}, () => {
                 tasks = newTasks;
                 renderTaskList();
-                showNotification('配置导入成功');
+                showNotification(chrome.i18n.getMessage('config_import_success') || '配置导入成功');
               });
             }else{
-              showNotification('导入失败：配置格式不正确', true);
+              showNotification(chrome.i18n.getMessage('import_failed_format') || '导入失败：配置格式不正确', true);
             }
           }catch(error){
-            showNotification(`导入失败：${error.message}`, true);
+            showNotification(`${chrome.i18n.getMessage('import_failed') || '导入失败'}：${error.message}`, true);
           }
         };
         reader.readAsText(file);
@@ -93,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
     downloadLink.click();
     document.body.removeChild(downloadLink);
 
-    showNotification('配置已下载');
+    showNotification(chrome.i18n.getMessage('config_downloaded') || '配置已下载');
   });
 
   markAllReadBtn.addEventListener('click', () => {
@@ -105,21 +106,21 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.local.set({tasks: updatedTasks}, () => {
       tasks = updatedTasks;
       renderTaskList();
-      showNotification('所有任务已标记为已读');
+      showNotification(chrome.i18n.getMessage('all_marked_read') || '所有任务已标记为已读');
       // 更新徽章文本
       updateBadgeText();
     });
   });
 
   refreshAllBtn.addEventListener('click', () => {
-    showNotification('正在刷新所有任务...');
+    showNotification(chrome.i18n.getMessage('refreshing_all_tasks') || '正在刷新所有任务...');
 
     // 使用async/await按顺序刷新任务
     async function refreshTasksSequentially(){
       for(const task of tasks){
         try{
           await new Promise((resolve, reject) => {
-            showNotification(`正在刷新 "${task.title}"...`);
+            showNotification(chrome.i18n.getMessage('refreshing_task', [task.title]) || `正在刷新 "${task.title}"...`);
             chrome.runtime.sendMessage({
               action: 'checkTask',
               taskId: task.id
@@ -132,12 +133,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
           });
         }catch(error){
-          console.error(`刷新任务 "${task.title}" 失败:`, error);
+          console.error(chrome.i18n.getMessage('refresh_task_failed', [task.title]) || `刷新任务 "${task.title}" 失败:`, error);
         }
       }
 
       loadTasks();
-      showNotification('所有任务已刷新');
+      showNotification(chrome.i18n.getMessage('all_tasks_refreshed') || '所有任务已刷新');
     }
 
     // 开始按顺序刷新任务
@@ -164,9 +165,20 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTaskList();
         deleteModal.style.display = 'none';
         taskToDelete = null;
-        showNotification('任务已删除');
+        showNotification(chrome.i18n.getMessage('task_deleted') || '任务已删除');
       });
     }
+  });
+
+  // 监听语言更改消息
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'languageChanged') {
+      // 重新加载任务列表以应用新语言
+      loadTasks();
+      i18nInit();
+      sendResponse({success: true});
+    }
+    return true;
   });
 
   // 加载任务列表
@@ -181,7 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // 渲染任务列表
   function renderTaskList() {
     if (tasks.length === 0) {
-      taskListElement.innerHTML = '<div class="no-tasks">暂无监控任务，点击"添加任务"创建新任务</div>';
+      taskListElement.innerHTML = '<div class="no-tasks" data-i18n="no_tasks">暂无监控任务，点击"添加任务"创建新任务</div>';
+      i18nInit();
       return;
     }
 
@@ -229,13 +242,13 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
         <div class="task-actions">
-          <button class="task-btn edit-btn" title="编辑">
+          <button class="task-btn edit-btn" data-i18n-title="edit_task" title="编辑">
             <i class="fas fa-edit"></i>
           </button>
-          <button class="task-btn delete-btn" title="删除">
+          <button class="task-btn delete-btn" data-i18n-title="delete_task" title="删除">
             <i class="fas fa-trash"></i>
           </button>
-          <button class="task-btn refresh-btn" title="刷新">
+          <button class="task-btn refresh-btn" data-i18n-title="refresh_task" title="刷新">
             <i class="fas fa-sync"></i>
           </button>
         </div>
@@ -270,16 +283,16 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       taskElement.querySelector('.refresh-btn').addEventListener('click', () => {
-        showNotification(`正在刷新 "${task.title}"...`);
+        showNotification(chrome.i18n.getMessage("refreshing_task", [task.title]) || `正在刷新 "${task.title}"...`);
         chrome.runtime.sendMessage({
           action: 'checkTask',
           taskId: task.id
         }, (response) => {
           if (response && response.success) {
             loadTasks();
-            showNotification(`已刷新 "${task.title}"`);
+            showNotification(chrome.i18n.getMessage("refreshed_task", [task.title]) || `已刷新 "${task.title}"`);
           } else {
-            showNotification(`刷新失败: ${response.error}`, true);
+            showNotification(chrome.i18n.getMessage("refresh_failed", [response ? response.error : 'Unknown error']) || `刷新失败: ${response ? response.error : 'Unknown error'}`, true);
           }
         });
       });
@@ -290,6 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 初始化拖拽功能
     initDragAndDrop();
     updateChangedTasksIndicator(); // 更新变化任务指示器
+    i18nInit();
   }
 
   // 标记任务为已读
@@ -309,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.local.set({tasks: updatedTasks}, () => {
       tasks = updatedTasks;
       renderTaskList();
-      showNotification('任务已标记为已读');
+      showNotification(chrome.i18n.getMessage('task_marked_read') || '任务已标记为已读');
       updateBadgeText();
       // chrome.runtime.sendMessage({
       //   action: 'updateBadge'
@@ -339,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
     changedTasksIndicator.className = 'changed-tasks-indicator';
     changedTasksIndicator.innerHTML = `
             <span class="changed-count">${changedTasksCount}</span>
-            <span class="changed-label">个任务有变化</span>
+            <span class="changed-label" data-i18n="changed_tasks">个任务有变化</span>
         `;
 
     // 将指示器添加到header中
@@ -347,6 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 更新徽章文本
     updateBadgeText();
+    i18nInit();
   }
 
   // 更新徽章文本的辅助函数
@@ -396,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           chrome.storage.local.set({tasks: reorderedTasks}, () => {
             tasks = reorderedTasks;
-            showNotification('任务顺序已更新');
+            showNotification(chrome.i18n.getMessage('task_order_updated') || '任务顺序已更新');
           });
         }
       });
@@ -488,4 +503,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return text.replace(/[&<>"']/g, (m) => map[m]);
   }
+});
+
+// 监听来自background的消息
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'languageChanged') {
+    // 重新加载页面以应用新语言
+    location.reload();
+    sendResponse({success: true});
+  }
+  return true;
 });

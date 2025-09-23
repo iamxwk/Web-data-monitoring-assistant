@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>编辑任务</title>
+  <title data-i18n="edit_task">编辑任务</title>
   <style>
     body {
       font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -247,7 +247,7 @@
 <header>
   <h1>
     <img src="icon/icon.png">
-    <span id="pageTitle">添加新任务</span>
+    <span id="pageTitle" data-i18n="add_new_task">添加新任务</span>
   </h1>
 </header>
 
@@ -255,27 +255,27 @@
   <input type="hidden" id="taskId">
 
   <div class="form-group">
-    <label for="taskTitle">任务标题</label>
-    <input type="text" id="taskTitle" required placeholder="例如：阿里云账户余额监控">
+    <label for="taskTitle" data-i18n="task_title">任务标题</label>
+    <input type="text" id="taskTitle" required data-i18n-placeholder="task_title_placeholder">
   </div>
 
   <div class="form-group">
-    <label for="pageUrl">页面URL</label>
-    <input type="url" id="pageUrl" required placeholder="例如：https://usercenter2.aliyun.com/">
+    <label for="pageUrl" data-i18n="page_url">页面URL</label>
+    <input type="url" id="pageUrl" required data-i18n-placeholder="page_url_placeholder">
   </div>
 
   <div class="form-group">
-    <label for="iconUrl">图标URL（可选）</label>
-    <input type="url" id="iconUrl" placeholder="例如：https://example.com/icon.png">
+    <label for="iconUrl" data-i18n="icon_url">图标URL（可选）</label>
+    <input type="url" id="iconUrl" data-i18n-placeholder="icon_url_placeholder">
   </div>
 
   <div class="form-group">
-    <label>监听周期</label>
+    <label data-i18n="monitoring_frequency">监听周期</label>
     <div class="frequency-group">
       <input type="number" id="frequencyValue" min="1" value="5" required>
       <select id="frequencyUnit">
-        <option value="minute">分钟</option>
-        <option value="hour">小时</option>
+        <option value="minute" data-i18n="minutes">分钟</option>
+        <option value="hour" data-i18n="hours">小时</option>
       </select>
     </div>
   </div>
@@ -283,29 +283,29 @@
   <div class="form-group">
     <div class="checkbox-group">
       <input type="checkbox" id="popupNotification" checked>
-      <label for="popupNotification">数据变化时弹窗提醒</label>
+      <label for="popupNotification" data-i18n="popup_notification">数据变化时弹窗提醒</label>
     </div>
   </div>
 
   <div class="form-group">
     <div class="checkbox-group">
       <input type="checkbox" id="enabled" checked>
-      <label for="enabled">启用任务</label>
+      <label for="enabled" data-i18n="enable_task">启用任务</label>
     </div>
   </div>
 
   <div class="form-group">
-    <label>请求配置</label>
+    <label data-i18n="request_config">请求配置</label>
     <div style="">
       <div>
-        <label for="requestUrl">请求URL</label>
-        <input type="url" id="requestUrl" required placeholder="例如：https://api.example.com/data"
+        <label for="requestUrl" data-i18n="request_url">请求URL</label>
+        <input type="url" id="requestUrl" required data-i18n-placeholder="request_url_placeholder"
                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; box-sizing: border-box;">
       </div>
     </div>
     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
       <div>
-        <label for="requestType">请求方法</label>
+        <label for="requestType" data-i18n="request_method">请求方法</label>
         <select id="requestType"
                 style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; box-sizing: border-box;">
           <option value="get">GET</option>
@@ -316,7 +316,7 @@
         </select>
       </div>
       <div>
-        <label for="requestDataType">数据类型</label>
+        <label for="requestDataType" data-i18n="data_type">数据类型</label>
         <select id="requestDataType"
                 style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; box-sizing: border-box;">
           <option value="json">JSON</option>
@@ -326,7 +326,7 @@
         </select>
       </div>
       <div>
-        <label for="requestTimeout">超时时间(毫秒)</label>
+        <label for="requestTimeout" data-i18n="timeout_ms">超时时间(毫秒)</label>
         <input type="number" id="requestTimeout" min="1000" max="60000" value="7000"
                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; box-sizing: border-box;">
       </div>
@@ -334,8 +334,8 @@
     <!--            <div class="code-helper">-->
     <!--                <p>配置jQuery.ajax请求参数，将自动生成请求体配置</p>-->
     <!--            </div>-->
-    <button type="button" class="test-btn" id="testRequestBtn">
-      <i class="fas fa-play"></i> 测试请求
+    <button type="button" class="test-btn" id="testRequestBtn" data-i18n="test_request">
+      <i class="fas fa-play"></i> <span data-i18n="test_request">测试请求</span>
     </button>
   </div>
 
@@ -343,13 +343,13 @@
   <input type="hidden" id="requestBody">
 
   <div class="form-group">
-    <label for="responseHandler">返回值处理代码</label>
+    <label for="responseHandler" data-i18n="response_handler">返回值处理代码</label>
     <textarea id="responseHandler" required></textarea>
     <div class="code-helper">
-      <p>请输入JavaScript代码，必须返回包含content和notify字段的对象。</p>
-      <p>content：字符串类型，用于比较数据变化的值</p>
-      <p>notify：布尔值类型，true 表示显示提醒</p>
-      <p>extra：对象类型，额外信息，可在后续处理中使用</p>
+      <p data-i18n="response_handler_helper_1">请输入JavaScript代码，必须返回包含content和notify字段的对象。</p>
+      <p data-i18n="response_handler_helper_2">content：字符串类型，用于比较数据变化的值</p>
+      <p data-i18n="response_handler_helper_3">notify：布尔值类型，true 表示显示提醒</p>
+      <p data-i18n="response_handler_helper_4">extra：对象类型，额外信息，可在后续处理中使用</p>
       <div>示例：<pre>
 return {
   "content": taskData.content,
@@ -359,17 +359,17 @@ return {
         </pre>
       </div>
     </div>
-    <button type="button" class="test-btn" id="testHandlerBtn">
-      <i class="fas fa-play"></i> 测试处理代码
+    <button type="button" class="test-btn" id="testHandlerBtn" data-i18n="test_handler">
+      <i class="fas fa-play"></i> <span data-i18n="test_handler">测试处理代码</span>
     </button>
   </div>
 
   <div class="button-group">
-    <button type="button" id="cancelBtn">
-      <i class="fas fa-times"></i> 取消
+    <button type="button" id="cancelBtn" data-i18n="cancel">
+      <i class="fas fa-times"></i> <span data-i18n="cancel">取消</span>
     </button>
-    <button type="submit" id="saveBtn">
-      <i class="fas fa-save"></i> 保存任务
+    <button type="submit" id="saveBtn" data-i18n="save_task">
+      <i class="fas fa-save"></i> <span data-i18n="save_task">保存任务</span>
     </button>
   </div>
 </form>
@@ -378,18 +378,20 @@ return {
 <div class="modal" id="testResultModal">
   <div class="modal-content">
     <div class="modal-header">
-      <h3 id="resultTitle">测试结果</h3>
+      <h3 id="resultTitle" data-i18n="test_result">测试结果</h3>
       <button class="close-modal" id="closeResultModal">&times;</button>
     </div>
     <div class="modal-body">
       <div class="result-container" id="resultContent"></div>
     </div>
     <div class="modal-footer">
-      <button id="closeResultBtn">关闭</button>
+      <button id="closeResultBtn" data-i18n="close">关闭</button>
     </div>
   </div>
 </div>
 
+<script src="languageManager.js"></script>
+<script src="i18n.js"></script>
 <script src="task-editor.js"></script>
 </body>
 </html>

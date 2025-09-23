@@ -15,45 +15,47 @@
     </header>
 
     <div class="button-group">
-        <button id="addTaskBtn">
-            <i class="fas fa-plus"></i> 添加任务
+        <button id="addTaskBtn" data-i18n="add_task">
+            <i class="fas fa-plus"></i> <span data-i18n="add_task">添加任务</span>
         </button>
-        <button id="importBtn" class="secondary">
-            <i class="fas fa-upload"></i> 导入配置
+        <button id="importBtn" class="secondary" data-i18n="import_config">
+            <i class="fas fa-upload"></i> <span data-i18n="import_config">导入配置</span>
         </button>
-        <button id="exportBtn" class="secondary">
-            <i class="fas fa-download"></i> 导出配置
+        <button id="exportBtn" class="secondary" data-i18n="export_config">
+            <i class="fas fa-download"></i> <span data-i18n="export_config">导出配置</span>
         </button>
-        <button id="markAllReadBtn" class="secondary">
-            <i class="fas fa-check"></i> 全部已读
+        <button id="markAllReadBtn" class="secondary" data-i18n="mark_all_read">
+            <i class="fas fa-check"></i> <span data-i18n="mark_all_read">全部已读</span>
         </button>
-        <button id="refreshAllBtn" class="secondary">
-            <i class="fas fa-sync"></i> 全部刷新
+        <button id="refreshAllBtn" class="secondary" data-i18n="refresh_all">
+            <i class="fas fa-sync"></i> <span data-i18n="refresh_all">全部刷新</span>
         </button>
     </div>
 
     <div id="taskList">
         <!-- 任务列表将通过JavaScript动态生成 -->
-        <div class="no-tasks">暂无监控任务，点击"添加任务"创建新任务</div>
+        <div class="no-tasks" data-i18n="no_tasks">暂无监控任务，点击"添加任务"创建新任务</div>
     </div>
 
     <!-- 删除确认模态框 -->
     <div class="modal" id="deleteModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>确认删除</h3>
+                <h3 data-i18n="confirm_delete">确认删除</h3>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" data-i18n="delete_confirmation">
                 确定要删除这个任务吗？此操作不可撤销。
             </div>
             <div class="modal-footer">
-                <button id="cancelDeleteBtn" class="secondary">取消</button>
-                <button id="confirmDeleteBtn">删除</button>
+                <button id="cancelDeleteBtn" class="secondary" data-i18n="cancel">取消</button>
+                <button id="confirmDeleteBtn" data-i18n="delete">删除</button>
             </div>
         </div>
     </div>
 
     <script src="jquery.min.js"></script>
+    <script src="languageManager.js"></script>
+    <script src="i18n.js"></script>
     <script src="popup.js"></script>
 </body>
 </html>

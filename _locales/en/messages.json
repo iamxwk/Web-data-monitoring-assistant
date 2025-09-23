@@ -1,0 +1,266 @@
+{
+  "extension_name": {
+    "message": "Web data monitoring assistant",
+    "description": "Extension name"
+  },
+  "extension_description": {
+    "message": "Monitor web data changes and notify you of data updates in a timely manner",
+    "description": "Extension description"
+  },
+  "add_task": {
+    "message": "Add Task",
+    "description": "Add task button text"
+  },
+  "import_config": {
+    "message": "Import Config",
+    "description": "Import configuration button text"
+  },
+  "export_config": {
+    "message": "Export Config",
+    "description": "Export configuration button text"
+  },
+  "mark_all_read": {
+    "message": "Mark All Read",
+    "description": "Mark all tasks as read button text"
+  },
+  "refresh_all": {
+    "message": "Refresh All",
+    "description": "Refresh all tasks button text"
+  },
+  "no_tasks": {
+    "message": "No monitoring tasks. Click \"Add Task\" to create a new task",
+    "description": "Text displayed when there are no tasks"
+  },
+  "confirm_delete": {
+    "message": "Confirm Delete",
+    "description": "Confirm delete modal title"
+  },
+  "delete_confirmation": {
+    "message": "Are you sure you want to delete this task? This action cannot be undone.",
+    "description": "Delete confirmation message"
+  },
+  "cancel": {
+    "message": "Cancel",
+    "description": "Cancel button text"
+  },
+  "delete": {
+    "message": "Delete",
+    "description": "Delete button text"
+  },
+  "edit_task": {
+    "message": "Edit Task",
+    "description": "Edit task page title"
+  },
+  "add_new_task": {
+    "message": "Add New Task",
+    "description": "Add new task page title"
+  },
+  "task_title": {
+    "message": "Task Title",
+    "description": "Task title label"
+  },
+  "task_title_placeholder": {
+    "message": "e.g. Alibaba Cloud account balance monitoring",
+    "description": "Task title placeholder"
+  },
+  "page_url": {
+    "message": "Page URL",
+    "description": "Page URL label"
+  },
+  "page_url_placeholder": {
+    "message": "e.g. https://usercenter2.aliyun.com/",
+    "description": "Page URL placeholder"
+  },
+  "icon_url": {
+    "message": "Icon URL (optional)",
+    "description": "Icon URL label"
+  },
+  "icon_url_placeholder": {
+    "message": "e.g. https://example.com/icon.png",
+    "description": "Icon URL placeholder"
+  },
+  "monitoring_frequency": {
+    "message": "Monitoring Frequency",
+    "description": "Monitoring frequency label"
+  },
+  "minutes": {
+    "message": "Minutes",
+    "description": "Minutes unit"
+  },
+  "hours": {
+    "message": "Hours",
+    "description": "Hours unit"
+  },
+  "popup_notification": {
+    "message": "Popup notification when data changes",
+    "description": "Popup notification checkbox label"
+  },
+  "enable_task": {
+    "message": "Enable Task",
+    "description": "Enable task checkbox label"
+  },
+  "request_config": {
+    "message": "Request Configuration",
+    "description": "Request configuration section title"
+  },
+  "request_url": {
+    "message": "Request URL",
+    "description": "Request URL label"
+  },
+  "request_url_placeholder": {
+    "message": "e.g. https://api.example.com/data",
+    "description": "Request URL placeholder"
+  },
+  "request_method": {
+    "message": "Request Method",
+    "description": "Request method label"
+  },
+  "data_type": {
+    "message": "Data Type",
+    "description": "Data type label"
+  },
+  "timeout_ms": {
+    "message": "Timeout (milliseconds)",
+    "description": "Timeout label"
+  },
+  "test_request": {
+    "message": "Test Request",
+    "description": "Test request button text"
+  },
+  "response_handler": {
+    "message": "Response Handler Code",
+    "description": "Response handler code label"
+  },
+  "response_handler_helper_1": {
+    "message": "Please enter JavaScript code that must return an object containing content and notify fields.",
+    "description": "Response handler helper text 1"
+  },
+  "response_handler_helper_2": {
+    "message": "content: string type, the value used to compare data changes",
+    "description": "Response handler helper text 2"
+  },
+  "response_handler_helper_3": {
+    "message": "notify: boolean type, true means show notification",
+    "description": "Response handler helper text 3"
+  },
+  "response_handler_helper_4": {
+    "message": "extra: object type, additional information that can be used in subsequent processing",
+    "description": "Response handler helper text 4"
+  },
+  "test_handler": {
+    "message": "Test Handler",
+    "description": "Test handler button text"
+  },
+  "save_task": {
+    "message": "Save Task",
+    "description": "Save task button text"
+  },
+  "test_result": {
+    "message": "Test Result",
+    "description": "Test result modal title"
+  },
+  "close": {
+    "message": "Close",
+    "description": "Close button text"
+  },
+  "changed_tasks": {
+    "message": "tasks have changed",
+    "description": "Text indicating number of changed tasks"
+  },
+  "delete_task": {
+    "message": "Delete Task",
+    "description": "Delete task button title"
+  },
+  "refresh_task": {
+    "message": "Refresh Task",
+    "description": "Refresh task button title"
+  },
+  "refreshing_task": {
+    "message": "Refreshing \"$1\"...",
+    "description": "Refreshing task notification message"
+  },
+  "refreshed_task": {
+    "message": "Refreshed \"$1\"",
+    "description": "Refreshed task notification message"
+  },
+  "refresh_failed": {
+    "message": "Refresh failed: $1",
+    "description": "Refresh failed notification message"
+  },
+  "config_import_success": {
+    "message": "Configuration imported successfully",
+    "description": "Configuration import success message"
+  },
+  "import_failed_format": {
+    "message": "Import failed: Incorrect configuration format",
+    "description": "Import failed due to incorrect format message"
+  },
+  "import_failed": {
+    "message": "Import failed",
+    "description": "Import failed message"
+  },
+  "config_downloaded": {
+    "message": "Configuration downloaded",
+    "description": "Configuration downloaded message"
+  },
+  "all_marked_read": {
+    "message": "All tasks marked as read",
+    "description": "All tasks marked as read message"
+  },
+  "refreshing_all_tasks": {
+    "message": "Refreshing all tasks...",
+    "description": "Refreshing all tasks message"
+  },
+  "refresh_task_failed": {
+    "message": "Failed to refresh task \"$1\"",
+    "description": "Refresh task failed message"
+  },
+  "all_tasks_refreshed": {
+    "message": "All tasks refreshed",
+    "description": "All tasks refreshed message"
+  },
+  "task_deleted": {
+    "message": "Task deleted",
+    "description": "Task deleted message"
+  },
+  "task_marked_read": {
+    "message": "Task marked as read",
+    "description": "Task marked as read message"
+  },
+  "task_order_updated": {
+    "message": "Task order updated",
+    "description": "Task order updated message"
+  },
+  "settings_title": {
+    "message": "Settings",
+    "description": "Settings page title"
+  },
+  "language_setting": {
+    "message": "Interface Language",
+    "description": "Language setting label"
+  },
+  "use_browser_language": {
+    "message": "Use browser language",
+    "description": "Use browser language option"
+  },
+  "english": {
+    "message": "English",
+    "description": "English language option"
+  },
+  "chinese_simplified": {
+    "message": "简体中文",
+    "description": "Simplified Chinese language option"
+  },
+  "chinese_traditional": {
+    "message": "繁體中文",
+    "description": "Traditional Chinese language option"
+  },
+  "save": {
+    "message": "Save",
+    "description": "Save button text"
+  },
+  "settings_saved": {
+    "message": "Settings saved",
+    "description": "Settings saved notification"
+  }
+}

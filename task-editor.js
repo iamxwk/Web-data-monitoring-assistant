@@ -77,6 +77,9 @@ document.addEventListener('DOMContentLoaded', () => {
     requestDataTypeSelect.addEventListener('change', updateRequestBody);
     requestTimeoutInput.addEventListener('input', updateRequestBody);
     requestUrlInput.addEventListener('input', updateRequestBody);
+    
+    // 初始化国际化
+    i18nInit();
   }
 
   // 根据表单字段更新请求体
@@ -354,4 +357,14 @@ document.addEventListener('DOMContentLoaded', () => {
   function generateId(){
     return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
   }
+});
+
+// 监听来自background的消息
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'languageChanged') {
+    // 重新加载页面以应用新语言
+    location.reload();
+    sendResponse({success: true});
+  }
+  return true;
 });

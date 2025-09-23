@@ -102,6 +102,25 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({success: true});
       return true;
       break;
+      
+    case 'languageChanged':
+      // 语言更改时更新所有相关的UI
+      updateBadgeText();
+      
+      // 通知所有tabs语言已更改
+      chrome.tabs.query({}, (tabs) => {
+        tabs.forEach(tab => {
+          chrome.tabs.sendMessage(tab.id, {
+            action: 'languageChanged',
+            language: request.language
+          }, () => {
+            // 忽略错误
+          });
+        });
+      });
+      
+      sendResponse({success: true});
+      break;
   }
 });
 
@@ -148,6 +167,7 @@ function checkTask(taskId, sendResponse = null){
         tasks[taskIndex] = {
           ...task,
           currentValue: newValue,
+          hasChanges: false,
           lastChecked: new Date().toISOString()
         };
 
@@ -506,8 +526,9 @@ function isEqual(a, b){
 
 // 添加更新浏览器图标上数字显示的函数
 function updateBadgeText(){
-  chrome.storage.local.get('tasks', (result) => {
+  chrome.storage.local.get(['tasks', 'settings'], (result) => {
     const tasks = result.tasks || [];
+    const settings = result.settings || {};
     const changedTasksCount = tasks.filter(task => task.hasChanges && task.enabled !== false).length;
 
     if(changedTasksCount > 0){
@@ -516,6 +537,24 @@ function updateBadgeText(){
     }else{
       chrome.action.setBadgeText({text: ''});
     }
+    
+    // 根据用户设置的语言更新徽章标题
+    let badgeTitle = 'Web data monitoring assistant';
+    if (settings.language) {
+      switch(settings.language) {
+        case 'zh_CN':
+          badgeTitle = '网页数据监控助手';
+          break;
+        case 'zh_TW':
+          badgeTitle = '網頁數據監控助手';
+          break;
+        case 'en':
+        default:
+          badgeTitle = 'Web data monitoring assistant';
+      }
+    }
+    
+    chrome.action.setTitle({title: badgeTitle});
   });
 }
 

@@ -1,0 +1,266 @@
+{
+  "extension_name": {
+    "message": "网页数据监控助手",
+    "description": "扩展名称"
+  },
+  "extension_description": {
+    "message": "监控网页数据变化，及时通知您数据更新",
+    "description": "扩展描述"
+  },
+  "add_task": {
+    "message": "添加任务",
+    "description": "添加任务按钮文本"
+  },
+  "import_config": {
+    "message": "导入配置",
+    "description": "导入配置按钮文本"
+  },
+  "export_config": {
+    "message": "导出配置",
+    "description": "导出配置按钮文本"
+  },
+  "mark_all_read": {
+    "message": "全部已读",
+    "description": "标记所有任务为已读按钮文本"
+  },
+  "refresh_all": {
+    "message": "全部刷新",
+    "description": "刷新所有任务按钮文本"
+  },
+  "no_tasks": {
+    "message": "暂无监控任务，点击\"添加任务\"创建新任务",
+    "description": "没有任务时显示的文本"
+  },
+  "confirm_delete": {
+    "message": "确认删除",
+    "description": "确认删除模态框标题"
+  },
+  "delete_confirmation": {
+    "message": "确定要删除这个任务吗？此操作不可撤销。",
+    "description": "删除确认消息"
+  },
+  "cancel": {
+    "message": "取消",
+    "description": "取消按钮文本"
+  },
+  "delete": {
+    "message": "删除",
+    "description": "删除按钮文本"
+  },
+  "edit_task": {
+    "message": "编辑任务",
+    "description": "编辑任务页面标题"
+  },
+  "add_new_task": {
+    "message": "添加新任务",
+    "description": "添加新任务页面标题"
+  },
+  "task_title": {
+    "message": "任务标题",
+    "description": "任务标题标签"
+  },
+  "task_title_placeholder": {
+    "message": "例如：阿里云账户余额监控",
+    "description": "任务标题占位符"
+  },
+  "page_url": {
+    "message": "页面URL",
+    "description": "页面URL标签"
+  },
+  "page_url_placeholder": {
+    "message": "例如：https://usercenter2.aliyun.com/",
+    "description": "页面URL占位符"
+  },
+  "icon_url": {
+    "message": "图标URL（可选）",
+    "description": "图标URL标签"
+  },
+  "icon_url_placeholder": {
+    "message": "例如：https://example.com/icon.png",
+    "description": "图标URL占位符"
+  },
+  "monitoring_frequency": {
+    "message": "监听周期",
+    "description": "监听周期标签"
+  },
+  "minutes": {
+    "message": "分钟",
+    "description": "分钟单位"
+  },
+  "hours": {
+    "message": "小时",
+    "description": "小时单位"
+  },
+  "popup_notification": {
+    "message": "数据变化时弹窗提醒",
+    "description": "弹窗提醒复选框标签"
+  },
+  "enable_task": {
+    "message": "启用任务",
+    "description": "启用任务复选框标签"
+  },
+  "request_config": {
+    "message": "请求配置",
+    "description": "请求配置部分标题"
+  },
+  "request_url": {
+    "message": "请求URL",
+    "description": "请求URL标签"
+  },
+  "request_url_placeholder": {
+    "message": "例如：https://api.example.com/data",
+    "description": "请求URL占位符"
+  },
+  "request_method": {
+    "message": "请求方法",
+    "description": "请求方法标签"
+  },
+  "data_type": {
+    "message": "数据类型",
+    "description": "数据类型标签"
+  },
+  "timeout_ms": {
+    "message": "超时时间(毫秒)",
+    "description": "超时时间标签"
+  },
+  "test_request": {
+    "message": "测试请求",
+    "description": "测试请求按钮文本"
+  },
+  "response_handler": {
+    "message": "返回值处理代码",
+    "description": "返回值处理代码标签"
+  },
+  "response_handler_helper_1": {
+    "message": "请输入JavaScript代码，必须返回包含content和notify字段的对象。",
+    "description": "返回值处理代码帮助文本1"
+  },
+  "response_handler_helper_2": {
+    "message": "content：字符串类型，用于比较数据变化的值",
+    "description": "返回值处理代码帮助文本2"
+  },
+  "response_handler_helper_3": {
+    "message": "notify：布尔值类型，true 表示显示提醒",
+    "description": "返回值处理代码帮助文本3"
+  },
+  "response_handler_helper_4": {
+    "message": "extra：对象类型，额外信息，可在后续处理中使用",
+    "description": "返回值处理代码帮助文本4"
+  },
+  "test_handler": {
+    "message": "测试处理代码",
+    "description": "测试处理代码按钮文本"
+  },
+  "save_task": {
+    "message": "保存任务",
+    "description": "保存任务按钮文本"
+  },
+  "test_result": {
+    "message": "测试结果",
+    "description": "测试结果模态框标题"
+  },
+  "close": {
+    "message": "关闭",
+    "description": "关闭按钮文本"
+  },
+  "changed_tasks": {
+    "message": "个任务有变化",
+    "description": "表示变化任务数量的文本"
+  },
+  "delete_task": {
+    "message": "删除任务",
+    "description": "删除任务按钮标题"
+  },
+  "refresh_task": {
+    "message": "刷新任务",
+    "description": "刷新任务按钮标题"
+  },
+  "refreshing_task": {
+    "message": "正在刷新 \"$1\"...",
+    "description": "正在刷新任务通知消息"
+  },
+  "refreshed_task": {
+    "message": "已刷新 \"$1\"",
+    "description": "已刷新任务通知消息"
+  },
+  "refresh_failed": {
+    "message": "刷新失败: $1",
+    "description": "刷新失败通知消息"
+  },
+  "config_import_success": {
+    "message": "配置导入成功",
+    "description": "配置导入成功消息"
+  },
+  "import_failed_format": {
+    "message": "导入失败：配置格式不正确",
+    "description": "因格式不正确导致的导入失败消息"
+  },
+  "import_failed": {
+    "message": "导入失败",
+    "description": "导入失败消息"
+  },
+  "config_downloaded": {
+    "message": "配置已下载",
+    "description": "配置已下载消息"
+  },
+  "all_marked_read": {
+    "message": "所有任务已标记为已读",
+    "description": "所有任务已标记为已读消息"
+  },
+  "refreshing_all_tasks": {
+    "message": "正在刷新所有任务...",
+    "description": "正在刷新所有任务消息"
+  },
+  "refresh_task_failed": {
+    "message": "刷新任务 \"$1\" 失败",
+    "description": "刷新任务失败消息"
+  },
+  "all_tasks_refreshed": {
+    "message": "所有任务已刷新",
+    "description": "所有任务已刷新消息"
+  },
+  "task_deleted": {
+    "message": "任务已删除",
+    "description": "任务已删除消息"
+  },
+  "task_marked_read": {
+    "message": "任务已标记为已读",
+    "description": "任务已标记为已读消息"
+  },
+  "task_order_updated": {
+    "message": "任务顺序已更新",
+    "description": "任务顺序已更新消息"
+  },
+  "settings_title": {
+    "message": "设置",
+    "description": "设置页面标题"
+  },
+  "language_setting": {
+    "message": "界面语言",
+    "description": "语言设置标签"
+  },
+  "use_browser_language": {
+    "message": "使用浏览器语言",
+    "description": "使用浏览器语言选项"
+  },
+  "english": {
+    "message": "English",
+    "description": "英语语言选项"
+  },
+  "chinese_simplified": {
+    "message": "简体中文",
+    "description": "简体中文语言选项"
+  },
+  "chinese_traditional": {
+    "message": "繁體中文",
+    "description": "繁体中文语言选项"
+  },
+  "save": {
+    "message": "保存",
+    "description": "保存按钮文本"
+  },
+  "settings_saved": {
+    "message": "设置已保存",
+    "description": "设置已保存通知"
+  }
+}

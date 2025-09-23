@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Web data monitoring assistant",
+  "name": "__MSG_extension_name__",
   "version": "0.1",
-  "description": "Monitor web data changes and notify you of data updates in a timely manner",
+  "description": "__MSG_extension_description__",
+  "default_locale": "en",
   "permissions": [
     "offscreen",
     "storage",
@@ -30,6 +31,7 @@
     "48": "icon/icon.png",
     "128": "icon/icon.png"
   },
+  "options_page": "settings.html",
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'",
     "sandbox": "sandbox allow-scripts; script-src 'self' 'unsafe-eval'; default-src 'self'; connect-src *;"
@@ -50,4 +52,3 @@
     }
   ]
 }
-
