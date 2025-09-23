@@ -35,7 +35,8 @@ function executeUserCode(codePayload, sendResponse){
   });
 }
 
-function activateAlarms(){
+function setupAllTaskAlarm(){
+  chrome.alarms.clearAll();
   chrome.storage.local.get('tasks', (result) => {
     if(!result.tasks){
       chrome.storage.local.set({tasks: []});
@@ -51,7 +52,7 @@ function activateAlarms(){
 // 当扩展安装或更新时
 chrome.runtime.onInstalled.addListener(() => {
   // 初始化存储
-  activateAlarms();
+  setupAllTaskAlarm();
 });
 
 // 监听alarm触发
@@ -65,7 +66,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 chrome.idle.onStateChanged.addListener((newState) => {
   if(newState === 'active'){
     // 电脑从休眠中恢复，检查任务是否需要立即执行
-    activateAlarms();
+    setupAllTaskAlarm();
   }
 });
 
@@ -86,11 +87,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
       break;
 
+    case 'setupAllAlarm':
+      setupAllTaskAlarm();
+      sendResponse({success: true});
+      break;
+
     case 'removeAlarm':
       if(request.taskId){
         chrome.alarms.clear(`task_${request.taskId}`);
         sendResponse({success: true});
       }
+      break;
+
+    case 'removeAllAlarm':
+      chrome.alarms.clearAll();
+      sendResponse({success: true});
       break;
 
     case 'testRequest':

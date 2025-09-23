@@ -142,7 +142,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 开始按顺序刷新任务
-    refreshTasksSequentially();
+    chrome.runtime.sendMessage({
+      action: 'setupAllAlarm'
+    }, (response) => {
+      refreshTasksSequentially();
+    });
   });
 
   cancelDeleteBtn.addEventListener('click', () => {
@@ -172,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 监听语言更改消息
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === 'languageChanged') {
+    if(request.action === 'languageChanged'){
       // 重新加载任务列表以应用新语言
       loadTasks();
       i18nInit();
@@ -191,8 +195,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 渲染任务列表
-  function renderTaskList() {
-    if (tasks.length === 0) {
+  function renderTaskList(){
+    if(tasks.length === 0){
       taskListElement.innerHTML = '<div class="no-tasks" data-i18n="no_tasks">暂无监控任务，点击"添加任务"创建新任务</div>';
       i18nInit();
       return;
@@ -203,8 +207,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 对任务进行排序，将有变化的任务排在最前面
     const sortedTasks = [...tasks].sort((a, b) => {
       // 如果一个任务有变化而另一个没有，则有变化的排在前面
-      if (a.hasChanges && !b.hasChanges) return -1;
-      if (!a.hasChanges && b.hasChanges) return 1;
+      if(a.hasChanges && !b.hasChanges) return -1;
+      if(!a.hasChanges && b.hasChanges) return 1;
 
       // 如果两个任务都有变化或都没有变化，则保持原有顺序
       return 0;
@@ -258,16 +262,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const taskTitleElement = taskElement.querySelector('.task-title');
       taskTitleElement.addEventListener('click', () => {
         // 如果任务有变化，则标记为已读
-        if (task.hasChanges) {
+        if(task.hasChanges){
           markTaskAsRead(task.id);
         }
 
         // 跳转到编辑页面
-        setTimeout(function () {
+        setTimeout(function(){
           chrome.tabs.create({
             url: `${task.pageUrl}`
           });
-        },100)
+        }, 100)
       });
 
       // 添加事件监听
@@ -288,10 +292,10 @@ document.addEventListener('DOMContentLoaded', () => {
           action: 'checkTask',
           taskId: task.id
         }, (response) => {
-          if (response && response.success) {
+          if(response && response.success){
             loadTasks();
             showNotification(chrome.i18n.getMessage("refreshed_task", [task.title]) || `已刷新 "${task.title}"`);
-          } else {
+          }else{
             showNotification(chrome.i18n.getMessage("refresh_failed", [response ? response.error : 'Unknown error']) || `刷新失败: ${response ? response.error : 'Unknown error'}`, true);
           }
         });
@@ -397,7 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       dragHandle.addEventListener('dragend', () => {
-        if (draggedItem) {
+        if(draggedItem){
           draggedItem.classList.remove('dragging');
           draggedItem = null;
 
@@ -419,7 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // 在整个项目上监听dragover事件，以便确定放置位置
       item.addEventListener('dragover', (e) => {
         e.preventDefault();
-        if (!draggedItem) return;
+        if(!draggedItem) return;
 
         e.dataTransfer.dropEffect = 'move';
         const afterElement = getDragAfterElement(taskListElement, e.clientY);
@@ -458,6 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 显示通知
   var tim;
+
   function showNotification(message, isError = false){
     // 创建临时通知元素
     $('.div_notification').remove();
@@ -507,7 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 监听来自background的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'languageChanged') {
+  if(request.action === 'languageChanged'){
     // 重新加载页面以应用新语言
     location.reload();
     sendResponse({success: true});
