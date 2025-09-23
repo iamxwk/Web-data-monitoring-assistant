@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // 格式化上次检查时间
       const lastChecked = task.lastChecked ?
         new Date(task.lastChecked).toLocaleString() :
-        '从未检查';
+        chrome.i18n.getMessage('never_checked');
 
       // 选择图标源：优先使用base64图标，其次使用URL图标，最后使用默认图标
       const iconSource = task.iconBase64 || task.iconUrl || 'icon/icon.png';

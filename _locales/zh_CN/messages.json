@@ -270,5 +270,9 @@
   "test_failed": {
     "message": "测试失败",
     "description": ""
+  },
+  "never_checked": {
+    "message": "从未检查",
+    "description": ""
   }
 }

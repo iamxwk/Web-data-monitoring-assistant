@@ -270,5 +270,9 @@
   "test_failed": {
     "message": "Test failed",
     "description": ""
+  },
+  "never_checked": {
+    "message": "Never checked",
+    "description": ""
   }
 }

@@ -202,9 +202,8 @@ document.addEventListener('DOMContentLoaded', () => {
         !responseHandlerInput.value.includes('content')
         || !responseHandlerInput.value.includes('notify')
       ){
-        if(!confirm('返回值处理代码需返回 content 和 notify')){
-          return;
-        }
+        showError(`返回值处理代码需返回 content 和 notify'`);
+        return;
       }
 
       // 构建任务对象
