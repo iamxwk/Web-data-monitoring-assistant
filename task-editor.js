@@ -9,12 +9,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const frequencyUnitSelect = document.getElementById('frequencyUnit');
   const popupNotificationInput = document.getElementById('popupNotification');
   const enabledInput = document.getElementById('enabled');
-  const requestBodyInput = document.getElementById('requestBody');
+  const requestBodyInput = document.getElementById('requestBody'); // 隐藏字段
   const responseHandlerInput = document.getElementById('responseHandler');
   const testRequestBtn = document.getElementById('testRequestBtn');
   const testHandlerBtn = document.getElementById('testHandlerBtn');
   const cancelBtn = document.getElementById('cancelBtn');
   const pageTitleElement = document.getElementById('pageTitle');
+
+  // 新增的请求配置元素
+  const requestTypeSelect = document.getElementById('requestType');
+  const requestDataTypeSelect = document.getElementById('requestDataType');
+  const requestTimeoutInput = document.getElementById('requestTimeout');
+  const requestUrlInput = document.getElementById('requestUrl');
 
   // 测试结果模态框元素
   const testResultModal = document.getElementById('testResultModal');
@@ -42,21 +48,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }else{
       // 新增任务
       pageTitleElement.textContent = '添加新任务';
-      // 设置默认请求体示例
-      requestBodyInput.value = `{
-  "type": "get",
-  "url": "https://api.example.com/data",
-  "dataType": "json",
-  "timeout": 7000
-}`;
+      // 设置默认请求配置
+      requestTypeSelect.value = 'get';
+      requestDataTypeSelect.value = 'json';
+      requestTimeoutInput.value = 5000;
+      requestUrlInput.value = 'https://api.example.com/data';
+
+      updateRequestBody(); // 初始化请求体
 
       // 设置默认处理代码示例
       responseHandlerInput.value = `return {
-  "content": response.value,
-  "extra": {
-    "timestamp": new Date().toISOString(),
-    "source": "API"
-  }
+  "content": taskData.content,
+  "notify": taskData.content != taskData.prevContent,
+  "extra": {}
 };`;
     }
 
@@ -67,6 +71,24 @@ document.addEventListener('DOMContentLoaded', () => {
     testHandlerBtn.addEventListener('click', testHandler);
     closeResultModal.addEventListener('click', () => testResultModal.style.display = 'none');
     closeResultBtn.addEventListener('click', () => testResultModal.style.display = 'none');
+
+    // 监听请求配置字段的变化
+    requestTypeSelect.addEventListener('change', updateRequestBody);
+    requestDataTypeSelect.addEventListener('change', updateRequestBody);
+    requestTimeoutInput.addEventListener('input', updateRequestBody);
+    requestUrlInput.addEventListener('input', updateRequestBody);
+  }
+
+  // 根据表单字段更新请求体
+  function updateRequestBody(){
+    const requestBody = {
+      type: requestTypeSelect.value,
+      url: requestUrlInput.value,
+      dataType: requestDataTypeSelect.value,
+      timeout: parseInt(requestTimeoutInput.value, 10)
+    };
+
+    requestBodyInput.value = JSON.stringify(requestBody);
   }
 
   // 加载任务用于编辑
@@ -84,9 +106,20 @@ document.addEventListener('DOMContentLoaded', () => {
         frequencyUnitSelect.value = currentTask.frequency.unit;
         popupNotificationInput.checked = currentTask.popupNotification;
         enabledInput.checked = currentTask.enabled !== false; // 默认为启用
-        requestBodyInput.value = typeof currentTask.requestBody === 'string'
-          ? currentTask.requestBody
-          : JSON.stringify(currentTask.requestBody, null, 2);
+
+        // 解析请求体配置到表单字段
+        if(currentTask.requestBody){
+          const requestBody = typeof currentTask.requestBody === 'string'
+            ? JSON.parse(currentTask.requestBody)
+            : currentTask.requestBody;
+
+          requestTypeSelect.value = requestBody.type || 'get';
+          requestDataTypeSelect.value = requestBody.dataType || 'json';
+          requestTimeoutInput.value = requestBody.timeout || 7000;
+          requestUrlInput.value = requestBody.url || '';
+        }
+
+        updateRequestBody(); // 更新隐藏字段
         responseHandlerInput.value = currentTask.responseHandler;
       }else{
         showError('未找到指定的任务');
@@ -96,14 +129,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 将图片URL转换为base64编码
-  function convertImageToBase64(url) {
+  function convertImageToBase64(url){
     return new Promise((resolve, reject) => {
       //暂时不再使用base64
       resolve(null);
       return;
 
       // 如果URL为空或不是有效的URL，则直接resolve空值
-      if (!url || !url.trim()) {
+      if(!url || !url.trim()){
         resolve(null);
         return;
       }
@@ -113,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
       img.crossOrigin = 'Anonymous'; // 处理跨域问题
 
       img.onload = () => {
-        try {
+        try{
           // 创建canvas元素
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
@@ -128,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
           // 将canvas转换为base64字符串
           const base64 = canvas.toDataURL('image/png');
           resolve(base64);
-        } catch (error) {
+        }catch(error){
           reject(new Error('图像转换失败: ' + error.message));
         }
       };
@@ -162,9 +195,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // 基本验证处理代码
       if(!responseHandlerInput.value.includes('return') ||
         !responseHandlerInput.value.includes('content')
-        // ||!responseHandlerInput.value.includes('extra')
+        || !responseHandlerInput.value.includes('notify')
       ){
-        if(!confirm('处理代码似乎不完整，可能无法正常工作。是否继续保存？')){
+        if(!confirm('返回值处理代码需返回 content 和 notify')){
           return;
         }
       }
@@ -196,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
         convertImageToBase64(iconUrlInput.value.trim())
           .then(iconBase64 => {
             // 如果转换成功，添加到任务数据中
-            if (iconBase64) {
+            if(iconBase64){
               taskData.iconBase64 = iconBase64;
             }
           })
