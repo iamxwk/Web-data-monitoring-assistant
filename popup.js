@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // 构建任务HTML
       taskElement.innerHTML = `
         <div class="drag-handle">
-          <i class="fas fa-grip-vertical"></i>
+          <i class="fas fa-bars"></i>
         </div>
         <div class="task-icon">
           <img src="${iconSource}" alt="Task Icon" width="24" height="24" loading="lazy">
@@ -360,33 +360,46 @@ document.addEventListener('DOMContentLoaded', () => {
     let draggedItem = null;
 
     taskItems.forEach(item => {
-      item.setAttribute('draggable', true);
+      // 获取拖拽手柄元素
+      const dragHandle = item.querySelector('.drag-handle');
 
-      item.addEventListener('dragstart', () => {
+      // 为拖拽手柄设置可拖拽属性
+      dragHandle.setAttribute('draggable', true);
+
+      // 在拖拽手柄上监听拖拽事件
+      dragHandle.addEventListener('dragstart', (e) => {
         draggedItem = item;
         setTimeout(() => item.classList.add('dragging'), 0);
+        // 设置拖拽效果
+        e.dataTransfer.effectAllowed = 'move';
       });
 
-      item.addEventListener('dragend', () => {
-        draggedItem = null;
-        item.classList.remove('dragging');
+      dragHandle.addEventListener('dragend', () => {
+        if (draggedItem) {
+          draggedItem.classList.remove('dragging');
+          draggedItem = null;
 
-        // 更新任务顺序
-        const taskIds = Array.from(document.querySelectorAll('.task-item'))
-          .map(item => item.dataset.id);
+          // 更新任务顺序
+          const taskIds = Array.from(document.querySelectorAll('.task-item'))
+            .map(item => item.dataset.id);
 
-        const reorderedTasks = taskIds.map(id =>
-          tasks.find(task => task.id === id)
-        );
+          const reorderedTasks = taskIds.map(id =>
+            tasks.find(task => task.id === id)
+          );
 
-        chrome.storage.local.set({tasks: reorderedTasks}, () => {
-          tasks = reorderedTasks;
-          showNotification('任务顺序已更新');
-        });
+          chrome.storage.local.set({tasks: reorderedTasks}, () => {
+            tasks = reorderedTasks;
+            showNotification('任务顺序已更新');
+          });
+        }
       });
 
+      // 在整个项目上监听dragover事件，以便确定放置位置
       item.addEventListener('dragover', (e) => {
         e.preventDefault();
+        if (!draggedItem) return;
+
+        e.dataTransfer.dropEffect = 'move';
         const afterElement = getDragAfterElement(taskListElement, e.clientY);
         const draggable = document.querySelector('.dragging');
         if(afterElement == null){
