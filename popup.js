@@ -188,7 +188,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tasks.forEach(task => {
       const taskElement = document.createElement('div');
-      taskElement.className = `task-item ${task.hasChanges ? 'has-changes' : ''}`;
+      // 根据任务是否启用添加disabled类
+      taskElement.className = `task-item ${task.hasChanges ? 'has-changes' : ''} ${task.enabled === false ? 'disabled' : ''}`;
       taskElement.dataset.id = task.id;
 
       // 格式化上次检查时间
