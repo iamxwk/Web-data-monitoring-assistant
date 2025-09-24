@@ -179,6 +179,46 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
+// 处理来自 offscreen.js 的 ajax 请求
+async function handleAjaxRequest(request, sender, sendResponse) {
+  const options = request.options;
+  const fetchOptions = {
+    method: options.type || 'GET',
+    headers: options.headers || {},
+    signal: null, // AbortController signal
+  };
+
+  // 处理 POST/PUT 等请求的 body
+  if (['POST', 'PUT', 'PATCH'].includes(fetchOptions.method.toUpperCase()) && options.data) {
+    fetchOptions.body = typeof options.data === 'object' ? JSON.stringify(options.data) : options.data;
+    // 如果用户没有指定 Content-Type，则默认为 json
+    if (!fetchOptions.headers['Content-Type'] && !fetchOptions.headers['content-type']) {
+      fetchOptions.headers['Content-Type'] = 'application/json';
+    }
+  }
+
+  // 处理超时
+  const controller = new AbortController();
+  const timeout = options.timeout || 7000;
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  fetchOptions.signal = controller.signal;
+
+  try {
+    const response = await fetch(options.url, fetchOptions);
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = options.dataType === 'json' ? await response.json() : await response.text();
+    sendResponse({ success: true, result: result });
+  } catch (error) {
+    clearTimeout(timeoutId);
+    sendResponse({ success: false, error: error.message });
+  }
+}
+
 // 设置定时任务
 function setupTaskAlarm(task){
   const intervalInMinutes = task.frequency.unit === 'hour'

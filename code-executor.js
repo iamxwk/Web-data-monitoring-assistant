@@ -1,36 +1,72 @@
 // code-executor.js
 
-// 监听来自 offscreen.js 的 postMessage
+// 用于存储 ajax 请求的 resolve/reject 函数
+const ajaxPromises = new Map();
+let promiseIdCounter = 0;
+
+// 1. 获取由 code-executor.html 引入的原生 jQuery 对象
+const original$ = window.$;
+// 2. 创建一个我们自己的 $ 对象，它继承（或复制）了原生 jQuery 的所有功能
+const custom$ = {...original$};
+
+// 3. 只覆盖 ajax 方法
+custom$.ajax = (options) => {
+  const promiseId = promiseIdCounter++;
+  const promise = new Promise((resolve, reject) => {
+    ajaxPromises.set(promiseId, {resolve, reject});
+  });
+
+  // 将 ajax 请求参数发送到父窗口 (offscreen.js)
+  // offscreen.js 需要将此消息转发到 background script
+  window.parent.postMessage({
+    action: 'makeAjaxRequest',
+    options: options,
+    promiseId: promiseId
+  }, '*');
+
+  return promise;
+}
+
+// 监听来自父窗口 (offscreen.js) 的消息
 window.addEventListener('message', (event) => {
   // 注意：在实际产品中，你可能想验证 event.origin 来增加安全性
+  const response = event.data;
 
-  const request = event.data;
-  if(request.action === 'executeCodeInSandbox'){
-    try{
-      // 现在 new Function 不会再报错了，因为它运行在沙箱里
-      const functionBody = `
-      try {
-        ${request.code}
-      } catch(e) {
-        return { __error: e.message }; 
+  // 处理来自 background 的 ajax 响应
+  if(response.action === 'ajaxResponse'){
+    const promise = ajaxPromises.get(response.promiseId);
+    if(promise){
+      if(response.success){
+        promise.resolve(response.result);
+      }else{
+        promise.reject(new Error(response.error));
       }
- `;
-      //return (${request.code})(${request.paramName});
-      // 注意：这里的 new Function 构造方式稍有不同，以适应通用性
-      // (request.code) 是用户的代码字符串，我们把它包在一个函数里
-      // 然后我们调用这个函数，并传入参数
-      const handlerFunction = new Function(request.paramName, functionBody);
-      const result = handlerFunction(request.paramValue);
-
-      if(result && result.__error){
-        throw new Error(result.__error);
-      }
-
-      // 通过 postMessage 将结果发回给 offscreen.js
-      window.parent.postMessage({success: true, result: result}, '*');
-
-    }catch(error){
-      window.parent.postMessage({success: false, error: error.message}, '*');
+      ajaxPromises.delete(response.promiseId);
     }
   }
+
+  // 处理执行代码的请求
+  if(response.action === 'executeCodeInSandbox'){
+    (async() => {
+      try{
+        // 将用户代码包装在一个异步函数中
+        // 注入我们自定义的 $ 对象和用户传入的参数
+        const AsyncFunction = Object.getPrototypeOf(async function(){
+        }).constructor;
+        const handlerFunction = new AsyncFunction(response.paramName, '$', response.code);
+
+        const result = await handlerFunction(response.paramValue, custom$);
+
+        // 执行成功，将结果发回
+        window.parent.postMessage({success: true, result: result}, '*');
+
+      }catch(error){
+        // 执行失败，将错误信息发回
+        window.parent.postMessage({success: false, error: error.message}, '*');
+      }
+    })();
+  }
 });
+
+// 通知父窗口沙箱已准备就绪
+window.parent.postMessage({action: 'sandboxReady'}, '*');
