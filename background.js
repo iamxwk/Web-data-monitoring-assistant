@@ -4,11 +4,11 @@ const OFFSCREEN_DOCUMENT_PATH = '/offscreen.html';
 async function setupOffscreenDocument(){
   // 检查是否已有 Offscreen Document
   if(await chrome.offscreen.hasDocument()){
-    console.log("Offscreen document already exists.");
+    // console.log("Offscreen document already exists.");
     return;
   }
 
-  console.log("Creating offscreen document...");
+  // console.log("Creating offscreen document...");
   // 创建 Offscreen Document
   await chrome.offscreen.createDocument({
     url: OFFSCREEN_DOCUMENT_PATH,
@@ -64,9 +64,20 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 });
 
 chrome.idle.onStateChanged.addListener((newState) => {
+  console.log(new Date().toLocaleString() + ' 电脑状态变化为:', newState);
+  if(newState === 'active'){
+    // 电脑从休眠或锁屏中恢复，处于活跃状态
+    console.log(new Date().toLocaleString() + ' 电脑已从休眠中恢复，闹钟可能已停止。');
+  }else if(newState === 'idle'){
+    // 电脑空闲了一段时间，但还没有进入休眠
+    console.log(new Date().toLocaleString() + ' 电脑处于闲置状态。');
+  }else if(newState === 'locked'){
+    // 电脑被锁屏
+    console.log(new Date().toLocaleString() + ' 电脑处于锁屏状态。');
+  }
+
   if(newState === 'active'){
     // 电脑从休眠中恢复，检查任务是否需要立即执行
-    setupAllTaskAlarm();
   }
 });
 
@@ -178,6 +189,8 @@ function checkTask(taskId, sendResponse = null){
       return;
     }
 
+    console.log(task.title + " 开始检查");
+
     // 执行请求并处理响应
     executeTaskRequest(task)
       .then(processedValue => {
@@ -205,9 +218,12 @@ function checkTask(taskId, sendResponse = null){
           // 更新图标上的变化任务数量
           updateBadgeText();
         });
+
+        console.log(task.title + " 结束检查", tasks[taskIndex]);
+
       })
       .catch(error => {
-        console.error('任务检查失败:', error);
+        console.error(task.title + ' 任务检查失败:', error);
         if(sendResponse) sendResponse({success: false, error: error.message});
       });
   });
@@ -264,12 +280,12 @@ function executeTaskRequest(task){
           executeUserCode(payload, (result) => {
             if(result.success){
               resolve(result.result);
-              console.log("✅ 代码执行成功! 最终结果:", result.result);
+              console.log("✅" + task.title + " 代码执行成功! 最终结果:", result.result);
               // 在实际应用中，你可能会用这个结果更新UI或存储它
             }else{
               reject(new Error('处理代码执行错误: ' + result.error));
 
-              console.error("❌ 代码执行失败! 错误信息:", result.error);
+              console.error("❌" + task.title + " 代码执行失败! 错误信息:", result.error);
             }
           });
           /*

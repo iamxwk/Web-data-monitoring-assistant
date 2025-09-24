@@ -47,6 +47,10 @@
     "message": "删除",
     "description": "删除按钮文本"
   },
+  "edit": {
+    "message": "编辑",
+    "description": "编辑按钮文本"
+  },
   "edit_task": {
     "message": "编辑任务",
     "description": "编辑任务页面标题"
@@ -263,16 +267,36 @@
     "message": "设置已保存",
     "description": "设置已保存通知"
   },
-  "test_successful": {
-    "message": "测试成功",
-    "description": ""
+  "task_management": {
+    "message": "任务管理",
+    "description": "任务管理部分标题"
   },
-  "test_failed": {
-    "message": "测试失败",
-    "description": ""
+  "task_id": {
+    "message": "任务ID",
+    "description": "任务ID列标题"
   },
-  "never_checked": {
-    "message": "从未检查",
-    "description": ""
+  "last_run_time": {
+    "message": "上次运行时间",
+    "description": "上次运行时间列标题"
+  },
+  "next_run_time": {
+    "message": "下次运行时间",
+    "description": "下次运行时间列标题"
+  },
+  "actions": {
+    "message": "操作",
+    "description": "操作列标题"
+  },
+  "never_ran": {
+    "message": "从未运行",
+    "description": "从未运行任务的文本"
+  },
+  "not_scheduled": {
+    "message": "未安排",
+    "description": "未安排任务的文本"
+  },
+  "calculation_error": {
+    "message": "计算错误",
+    "description": "计算错误的文本"
   }
 }

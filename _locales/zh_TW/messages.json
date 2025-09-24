@@ -47,6 +47,10 @@
     "message": "刪除",
     "description": "刪除按鈕文本"
   },
+  "edit": {
+    "message": "編輯",
+    "description": "編輯按鈕文本"
+  },
   "edit_task": {
     "message": "編輯任務",
     "description": "編輯任務頁面標題"
@@ -263,16 +267,36 @@
     "message": "設置已保存",
     "description": "設置已保存通知"
   },
-  "test_successful": {
-    "message": "測試成功",
-    "description": ""
+  "task_management": {
+    "message": "任務管理",
+    "description": "任務管理部分標題"
   },
-  "test_failed": {
-    "message": "測試失敗",
-    "description": ""
+  "task_id": {
+    "message": "任務ID",
+    "description": "任務ID列標題"
   },
-  "never_checked": {
-    "message": "從未檢查",
-    "description": ""
+  "last_run_time": {
+    "message": "上次運行時間",
+    "description": "上次運行時間列標題"
+  },
+  "next_run_time": {
+    "message": "下次運行時間",
+    "description": "下次運行時間列標題"
+  },
+  "actions": {
+    "message": "操作",
+    "description": "操作列標題"
+  },
+  "never_ran": {
+    "message": "從未運行",
+    "description": "從未運行任務的文本"
+  },
+  "not_scheduled": {
+    "message": "未安排",
+    "description": "未安排任務的文本"
+  },
+  "calculation_error": {
+    "message": "計算錯誤",
+    "description": "計算錯誤的文本"
   }
 }

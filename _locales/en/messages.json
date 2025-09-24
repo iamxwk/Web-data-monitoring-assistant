@@ -47,6 +47,10 @@
     "message": "Delete",
     "description": "Delete button text"
   },
+  "edit": {
+    "message": "Edit",
+    "description": "Edit button text"
+  },
   "edit_task": {
     "message": "Edit Task",
     "description": "Edit task page title"
@@ -263,16 +267,36 @@
     "message": "Settings saved",
     "description": "Settings saved notification"
   },
-  "test_successful": {
-    "message": "Test successful",
-    "description": ""
+  "task_management": {
+    "message": "Task Management",
+    "description": "Task management section title"
   },
-  "test_failed": {
-    "message": "Test failed",
-    "description": ""
+  "task_id": {
+    "message": "Task ID",
+    "description": "Task ID column header"
   },
-  "never_checked": {
-    "message": "Never checked",
-    "description": ""
+  "last_run_time": {
+    "message": "Last Run Time",
+    "description": "Last run time column header"
+  },
+  "next_run_time": {
+    "message": "Next Run Time",
+    "description": "Next run time column header"
+  },
+  "actions": {
+    "message": "Actions",
+    "description": "Actions column header"
+  },
+  "never_ran": {
+    "message": "Never ran",
+    "description": "Text for tasks that have never run"
+  },
+  "not_scheduled": {
+    "message": "Not scheduled",
+    "description": "Text for tasks that are not scheduled"
+  },
+  "calculation_error": {
+    "message": "Calculation error",
+    "description": "Text for calculation errors"
   }
 }
