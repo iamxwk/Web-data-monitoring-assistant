@@ -1,12 +1,12 @@
 const OFFSCREEN_DOCUMENT_PATH = '/offscreen.html';
 
 // 全局任务队列和状态
-let taskQueue = [];
+let taskQueue = []; // [{taskId, sendResponse}, ...]
 let isProcessing = false;
 
 // 帮助函数，用于创建和检查 Offscreen Document
-async function setupOffscreenDocument(){
-  if(await chrome.offscreen.hasDocument()){
+async function setupOffscreenDocument() {
+  if (await chrome.offscreen.hasDocument()) {
     return;
   }
   await chrome.offscreen.createDocument({
@@ -17,17 +17,17 @@ async function setupOffscreenDocument(){
 }
 
 // 封装的执行用户代码的核心函数（已改为 Promise）
-function executeUserCode(codePayload){
+function executeUserCode(codePayload) {
   return new Promise((resolve, reject) => {
     setupOffscreenDocument().then(() => {
       chrome.runtime.sendMessage(codePayload, (result) => {
-        if(chrome.runtime.lastError){
+        if (chrome.runtime.lastError) {
           reject(new Error('代码执行失败: ' + chrome.runtime.lastError.message));
           return;
         }
-        if(result.success){
+        if (result.success) {
           resolve(result.result);
-        }else{
+        } else {
           reject(new Error('处理代码执行错误: ' + result.error));
         }
       });
@@ -36,30 +36,33 @@ function executeUserCode(codePayload){
 }
 
 // 任务队列处理器：一次只处理一个任务
-async function processTaskQueue(){
-  if(isProcessing || taskQueue.length === 0){
+async function processTaskQueue() {
+  if (isProcessing || taskQueue.length === 0) {
     return;
   }
   isProcessing = true;
-  const taskId = taskQueue.shift(); // 从队列头部取出一个任务
+  const taskJob = taskQueue.shift(); // 从队列头部取出一个任务
 
-  try{
-    await checkTask(taskId); // 调用任务检查函数
-  }catch(error){
-    console.error(`处理任务 ${taskId} 时发生错误: `, error);
-  }finally{
+  try {
+    await checkTask(taskJob.taskId, taskJob.sendResponse); // 调用任务检查函数
+  } catch (error) {
+    console.error(`处理任务 ${taskJob.taskId} 时发生错误: `, error);
+    if (taskJob.sendResponse) {
+      taskJob.sendResponse({ success: false, error: error.message });
+    }
+  } finally {
     isProcessing = false;
     // 处理完一个任务后，继续处理队列中的下一个
-    if(taskQueue.length > 0){
+    if (taskQueue.length > 0) {
       processTaskQueue();
     }
   }
 }
 
-// 将任务添加到队列中，并启动处理器
-function addTaskToQueue(taskId){
-  if(!taskQueue.includes(taskId)){
-    taskQueue.push(taskId);
+// 将任务添加到队列中
+function addTaskToQueue(taskId, sendResponse) {
+  if (!taskQueue.some(job => job.taskId === taskId)) {
+    taskQueue.push({ taskId, sendResponse });
     processTaskQueue();
   }
 }
@@ -68,16 +71,16 @@ async function setupAllTaskAlarm(){
   chrome.alarms.clearAll();
   const result = await chrome.storage.local.get('tasks');
   const tasks = result.tasks || [];
-  if(tasks.length === 0){
+  if (tasks.length === 0) {
     await chrome.storage.local.set({tasks: []});
-  }else{
+  } else {
     tasks.forEach(task => {
       setupTaskAlarm(task);
     });
   }
 }
 
-// 当扩展安装或更新时
+// 事件监听器
 chrome.runtime.onInstalled.addListener(() => {
   setupAllTaskAlarm();
   updateBadgeText();
@@ -93,7 +96,7 @@ chrome.runtime.onStartup.addListener(() => {
 chrome.alarms.onAlarm.addListener((alarm) => {
   if(alarm.name.startsWith('task_')){
     const taskId = alarm.name.split('task_')[1];
-    addTaskToQueue(taskId);
+    addTaskToQueue(taskId, null);
   }
 });
 
@@ -108,7 +111,7 @@ chrome.idle.onStateChanged.addListener((newState) => {
 
 // 【修复】将通知点击监听器移动到顶层
 chrome.notifications.onClicked.addListener((notificationId) => {
-  if(notificationId.startsWith('task_')){
+  if (notificationId.startsWith('task_')) {
     chrome.action.openPopup();
     // 用户点击后，可以选择清除该通知
     chrome.notifications.clear(notificationId);
@@ -118,11 +121,19 @@ chrome.notifications.onClicked.addListener((notificationId) => {
 
 // 监听来自popup和task-editor的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  // 【修复】为测试功能增加后台繁忙检查
+  if (['testRequest', 'testHandler'].includes(request.action)) {
+    if (isProcessing) {
+      sendResponse({ success: false, error: '后台任务正在运行，请稍后再试。' });
+      return; // 同步返回，不需要 return true
+    }
+  }
+
   switch(request.action){
     case 'checkTask':
       if(request.taskId){
-        addTaskToQueue(request.taskId);
-        sendResponse({success: true, message: '任务已添加到队列。'});
+        addTaskToQueue(request.taskId, sendResponse);
+        return true; // 异步响应
       }
       break;
     case 'setupAlarm':
@@ -132,8 +143,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
       break;
     case 'setupAllAlarm':
-      setupAllTaskAlarm();
-      sendResponse({success: true});
+      setupAllTaskAlarm().then(() => sendResponse({success: true}));
+      return true; // 异步
       break;
     case 'removeAlarm':
       if(request.taskId){
@@ -160,19 +171,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     case 'updateBadge':
       updateBadgeText();
       sendResponse({success: true});
-      return true;
       break;
     case 'languageChanged':
       updateBadgeText();
-      chrome.tabs.query({}, (tabs) => {
-        tabs.forEach(tab => {
-          chrome.tabs.sendMessage(tab.id, {
-            action: 'languageChanged',
-            language: request.language
-          }, () => {
-          });
-        });
-      });
       sendResponse({success: true});
       break;
   }
@@ -189,61 +190,63 @@ function setupTaskAlarm(task){
 }
 
 // 检查任务的API变化
-async function checkTask(taskId, sendResponse = null){
-  try{
+async function checkTask(taskId, sendResponse = null) {
+  let taskTitle = `Task ID: ${taskId}`;
+  try {
     const tasksResult = await chrome.storage.local.get('tasks');
     const tasks = tasksResult.tasks || [];
     const taskIndex = tasks.findIndex(t => t.id === taskId);
 
-    if(taskIndex === -1){
-      if(sendResponse) sendResponse({success: false, error: '任务不存在'});
+    if (taskIndex === -1) {
+      if (sendResponse) sendResponse({ success: false, error: '任务不存在' });
       return;
     }
 
     const task = tasks[taskIndex];
+    taskTitle = task.title; // 获取任务标题用于日志
 
-    if(task.enabled === false){
-      if(sendResponse) sendResponse({success: true, message: '任务已禁用'});
+    if (task.enabled === false) {
+      if (sendResponse) sendResponse({ success: true, message: '任务已禁用' });
       return;
     }
 
-    console.log(new Date().toLocaleString() + ' ' + task.title + " 开始检查");
+    console.log(`${new Date().toLocaleString()} ${taskTitle} 开始检查`);
 
     const processedValue = await executeTaskRequest(task);
 
-    // 关键步骤：在保存前，重新获取最新版本的 tasks 数组，确保没有竞态条件
     const latestTasksResult = await chrome.storage.local.get('tasks');
     const latestTasks = latestTasksResult.tasks || [];
     const latestTaskIndex = latestTasks.findIndex(t => t.id === taskId);
 
-    if(latestTaskIndex === -1){
-      console.log(`任务 ${task.title} 在处理期间被删除，跳过保存。`);
+    if (latestTaskIndex === -1) {
+      console.log(`任务 ${taskTitle} 在处理期间被删除，跳过保存。`);
+      if (sendResponse) sendResponse({ success: true, message: '任务已被删除' });
       return;
     }
 
     latestTasks[latestTaskIndex].currentValue = processedValue;
     latestTasks[latestTaskIndex].lastChecked = new Date().toISOString();
 
-    if(processedValue && processedValue.notify === true && task.popupNotification){
+    if (processedValue && processedValue.notify === true && task.popupNotification) {
       showNotification(task);
       latestTasks[latestTaskIndex].hasChanges = true;
-    }else{
+    } else {
       latestTasks[latestTaskIndex].hasChanges = false;
     }
 
-    await chrome.storage.local.set({tasks: latestTasks});
-    if(sendResponse) sendResponse({success: true});
+    await chrome.storage.local.set({ tasks: latestTasks });
+    if (sendResponse) sendResponse({ success: true });
     updateBadgeText();
 
-    console.log(new Date().toLocaleString() + ' ' + task.title + " 结束检查", latestTasks[latestTaskIndex]);
+    console.log(`${new Date().toLocaleString()} ${taskTitle} 结束检查`);
 
-  }catch(error){
+  } catch (error) {
     const errorMessage = error.name === 'AbortError'
-      ? `请求超时（${task.requestBody.timeout || 7000}ms）`
+      ? `请求超时`
       : error.message;
 
-    console.error(new Date().toLocaleString() + ' ' + task.title + ' 任务检查失败:', errorMessage);
-    if(sendResponse) sendResponse({success: false, error: errorMessage});
+    console.error(`${new Date().toLocaleString()} ${taskTitle} 任务检查失败:`, errorMessage);
+    if (sendResponse) sendResponse({ success: false, error: errorMessage });
   }
 }
 
@@ -271,19 +274,19 @@ async function fetchWithRetry(resource, options = {}){
   }
 }
 
-// 执行任务请求，并返回处理后的数据
-async function executeTaskRequest(task){
+// 执行任务请求
+async function executeTaskRequest(task) {
   const requestConfig = task.requestBody;
   const fetchOptions = {
     method: requestConfig.type || 'get',
     headers: requestConfig.headers || {},
     timeout: requestConfig.timeout || 7000
   };
-  if(['post', 'put', 'patch'].includes(fetchOptions.method.toLowerCase()) && requestConfig.data){
+  if (['post', 'put', 'patch'].includes(fetchOptions.method.toLowerCase()) && requestConfig.data) {
     fetchOptions.body = typeof requestConfig.data === 'object'
       ? JSON.stringify(requestConfig.data)
       : requestConfig.data;
-    if(!fetchOptions.headers['Content-Type'] && !fetchOptions.headers['content-type']){
+    if (!fetchOptions.headers['Content-Type'] && !fetchOptions.headers['content-type']) {
       fetchOptions.headers['Content-Type'] = 'application/json';
     }
   }
@@ -291,7 +294,7 @@ async function executeTaskRequest(task){
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), fetchOptions.timeout);
 
-  try{
+  try {
     const response = await fetchWithRetry(requestConfig.url, {
       ...fetchOptions,
       signal: controller.signal
@@ -312,10 +315,8 @@ async function executeTaskRequest(task){
       paramValue: taskData,
       code: task.responseHandler
     };
-    const processedValue = await executeUserCode(payload);
-    console.log(new Date().toLocaleString() + ' ' + "✅" + task.title + " 代码执行成功! 最终结果:", processedValue);
-    return processedValue;
-  }catch(error){
+    return await executeUserCode(payload);
+  } catch (error) {
     clearTimeout(timeoutId);
     console.error(new Date().toLocaleString() + ' ' + task.title + ' 任务执行失败:', error);
     throw error;
@@ -409,14 +410,12 @@ function testHandler(currentTask, requestConfig, handlerCode, sendResponse){
           paramValue: taskData,
           code: handlerCode
         };
-        executeUserCode(payload, (result) => {
-          if(result.success){
-            sendResponse({success: true, result: result.result});
-            console.log("✅ 代码执行成功! 最终结果:", result.result);
-          }else{
-            sendResponse({success: false, error: `处理代码执行错误: ${result.error}`});
-            console.error("❌ 代码执行失败! 错误信息:", result.error);
-          }
+        executeUserCode(payload).then(result => {
+            sendResponse({success: true, result: result});
+            console.log("✅ 代码执行成功! 最终结果:", result);
+        }).catch(error => {
+            sendResponse({success: false, error: `处理代码执行错误: ${error.message}`});
+            console.error("❌ 代码执行失败! 错误信息:", error.message);
         });
       })
       .catch(error => {
@@ -432,7 +431,7 @@ function testHandler(currentTask, requestConfig, handlerCode, sendResponse){
   }
 }
 
-// 【修复】显示通知（移除监听器）
+// 显示通知
 function showNotification(task){
   chrome.notifications.create(`task_${task.id}_notification`, {
     type: 'basic',
@@ -448,12 +447,10 @@ async function checkOverdueTasks(){
   const result = await chrome.storage.local.get('tasks');
   const tasks = result.tasks || [];
   for(const task of tasks){
-    if(task.enabled === false){
-      continue;
-    }
+    if(task.enabled === false){ continue; }
     if(!task.lastChecked){
       console.log(`Task ${task.title} has never been checked, adding to queue...`);
-      addTaskToQueue(task.id);
+      addTaskToQueue(task.id, null);
       continue;
     }
     const lastCheckedTime = new Date(task.lastChecked).getTime();
@@ -462,10 +459,9 @@ async function checkOverdueTasks(){
       : task.frequency.value;
     const intervalInMs = intervalInMinutes * 60 * 1000;
     const expectedNextCheckTime = lastCheckedTime + intervalInMs;
-    const currentTime = Date.now();
-    if(currentTime >= expectedNextCheckTime){
+    if(Date.now() >= expectedNextCheckTime){
       console.log(`Task ${task.title} is overdue, adding to queue...`);
-      addTaskToQueue(task.id);
+      addTaskToQueue(task.id, null);
     }
   }
 }

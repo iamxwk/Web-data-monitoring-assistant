@@ -379,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let content = message;
     if(result !== null){
-      content += 'taskData.content = ' + JSON.stringify(result, null, 2);
+      content += JSON.stringify(result, null, 2);
     }
 
     resultContentElement.textContent = content;
