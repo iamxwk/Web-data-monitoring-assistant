@@ -112,41 +112,37 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  refreshAllBtn.addEventListener('click', () => {
+  refreshAllBtn.addEventListener('click', async () => {
     showNotification(chrome.i18n.getMessage('refreshing_all_tasks') || '正在刷新所有任务...');
 
-    // 使用async/await按顺序刷新任务
-    async function refreshTasksSequentially(){
-      for(const task of tasks){
-        try{
-          await new Promise((resolve, reject) => {
-            showNotification(chrome.i18n.getMessage('refreshing_task', [task.title]) || `正在刷新 "${task.title}"...`);
-            chrome.runtime.sendMessage({
-              action: 'checkTask',
-              taskId: task.id
-            }, (response) => {
-              if(chrome.runtime.lastError){
-                reject(chrome.runtime.lastError);
-              }else{
-                resolve(response);
-              }
-            });
-          });
-        }catch(error){
-          console.error(chrome.i18n.getMessage('refresh_task_failed', [task.title]) || `刷新任务 "${task.title}" 失败:`, error);
-        }
+    for (const task of tasks) {
+      if (task.enabled === false) {
+        continue;
       }
-
-      loadTasks();
-      showNotification(chrome.i18n.getMessage('all_tasks_refreshed') || '所有任务已刷新');
+      try {
+        await new Promise((resolve, reject) => {
+          chrome.runtime.sendMessage({
+            action: 'checkTask',
+            taskId: task.id
+          }, (response) => {
+            if (chrome.runtime.lastError) {
+              reject(new Error(chrome.runtime.lastError.message));
+            } else if (response && response.success) {
+              resolve(response);
+            } else {
+              reject(new Error(response ? response.error : 'Unknown error'));
+            }
+          });
+        });
+      } catch (error) {
+        console.error(`刷新任务 "${task.title}" 失败:`, error);
+        showNotification(chrome.i18n.getMessage('refresh_task_failed', [task.title]), true);
+      }
     }
 
-    // 开始按顺序刷新任务
-    chrome.runtime.sendMessage({
-      action: 'setupAllAlarm'
-    }, (response) => {
-      refreshTasksSequentially();
-    });
+    // After all tasks are done, reload and show final notification
+    loadTasks();
+    showNotification(chrome.i18n.getMessage('all_tasks_refreshed') || '所有任务已刷新');
   });
 
   cancelDeleteBtn.addEventListener('click', () => {

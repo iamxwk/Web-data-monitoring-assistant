@@ -93,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <table class="tasks-table">
         <thead>
           <tr>
+            <th></th>
             <th data-i18n="task_id">任务ID</th>
             <th data-i18n="task_title">任务标题</th>
             <th data-i18n="last_run_time">上次运行时间</th>
@@ -103,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <tbody>
     `;
 
-    tasks.forEach(task => {
+    tasks.forEach((task, index) => {
       // 格式化上次运行时间
       const lastRunTime = task.lastChecked
         ? new Date(task.lastChecked).toLocaleString()
@@ -111,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       tableHTML += `
         <tr data-task-id="${task.id}">
+          <td>${index+1}</td>
           <td>${escapeHtml(task.id)}</td>
           <td>${escapeHtml(task.title)}</td>
           <td>${lastRunTime}</td>

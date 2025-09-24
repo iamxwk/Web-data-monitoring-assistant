@@ -1,11 +1,18 @@
 body {
   width: 650px;
+  /* 1. Increase height and set up flexbox layout */
+  max-height: 600px;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
   padding: 15px;
   margin: 0;
   font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   background-color: #f5f5f7;
   color: #333;
-  overflow-y: auto;
+  /* 2. Prevent the whole popup from scrolling */
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 header {
@@ -15,6 +22,8 @@ header {
   margin-bottom: 20px;
   padding-bottom: 10px;
   border-bottom: 1px solid #e0e0e0;
+  /* 3. Prevent header from shrinking */
+  flex-shrink: 0;
 }
 
 h1 {
@@ -31,7 +40,6 @@ h1 img {
   height: 24px;
 }
 
-/* 添加变化任务指示器的样式 */
 .changed-tasks-indicator {
   display: flex;
   align-items: center;
@@ -52,6 +60,8 @@ h1 img {
   gap: 8px;
   margin-bottom: 15px;
   flex-wrap: wrap;
+  /* 4. Prevent button group from shrinking */
+  flex-shrink: 0;
 }
 
 button {
@@ -81,11 +91,13 @@ button.secondary:hover {
 }
 
 #taskList {
-  margin-top: 15px;
-  border-radius: 6px;
-  overflow: hidden;
-  max-height: 400px;
+  /* 5. Make the task list grow and scroll independently */
+  flex: 1;
   overflow-y: auto;
+  border-radius: 6px;
+  /* overflow: hidden is needed for border-radius to clip content,
+     but overflow-y will override it for the vertical axis. */
+  overflow-x: hidden;
 }
 
 .task-item {

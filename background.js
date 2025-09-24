@@ -106,7 +106,17 @@ chrome.idle.onStateChanged.addListener((newState) => {
   }
 });
 
-// 监听来自popup和task-editor的消息，将任务添加到队列
+// 【修复】将通知点击监听器移动到顶层
+chrome.notifications.onClicked.addListener((notificationId) => {
+  if (notificationId.startsWith('task_')) {
+    chrome.action.openPopup();
+    // 用户点击后，可以选择清除该通知
+    chrome.notifications.clear(notificationId);
+  }
+});
+
+
+// 监听来自popup和task-editor的消息
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   switch(request.action){
     case 'checkTask':
@@ -236,7 +246,7 @@ async function checkTask(taskId, sendResponse = null) {
   }
 }
 
-// 带有重试机制的 fetch 请求，用法和标准 fetch 完全一致
+// 带有重试机制的 fetch 请求
 async function fetchWithRetry(resource, options = {}){
   const {retries = 3, ...fetchOptions} = options;
   for(let i = 0; i < retries; i++){
@@ -421,7 +431,7 @@ function testHandler(currentTask, requestConfig, handlerCode, sendResponse){
   }
 }
 
-// 显示通知
+// 【修复】显示通知（移除监听器）
 function showNotification(task){
   chrome.notifications.create(`task_${task.id}_notification`, {
     type: 'basic',
@@ -430,14 +440,9 @@ function showNotification(task){
     message: `任务 "${task.title}" 检测到数据变化`,
     priority: 2
   });
-  chrome.notifications.onClicked.addListener((notificationId) => {
-    if(notificationId === `task_${task.id}_notification`){
-      chrome.action.openPopup();
-    }
-  });
 }
 
-// 检查过期任务，并将它们添加到队列中
+// 检查过期任务
 async function checkOverdueTasks(){
   const result = await chrome.storage.local.get('tasks');
   const tasks = result.tasks || [];
@@ -464,7 +469,7 @@ async function checkOverdueTasks(){
   }
 }
 
-// 添加更新浏览器图标上数字显示的函数
+// 更新浏览器图标徽章
 function updateBadgeText(){
   chrome.storage.local.get(['tasks', 'settings'], (result) => {
     const tasks = result.tasks || [];
