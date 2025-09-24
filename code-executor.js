@@ -5,12 +5,11 @@ const ajaxPromises = new Map();
 let promiseIdCounter = 0;
 
 // 1. 获取由 code-executor.html 引入的原生 jQuery 对象
-const original$ = window.$;
-// 2. 创建一个我们自己的 $ 对象，它继承（或复制）了原生 jQuery 的所有功能
-const custom$ = {...original$};
+const $ = window.$;
 
-// 3. 只覆盖 ajax 方法
-custom$.ajax = (options) => {
+// 2. 只覆盖我们想要拦截的 ajax 方法
+//    现在 $ 仍然是一个可调用的函数，同时拥有所有其他jQuery方法
+$.ajax = (options) => {
   const promiseId = promiseIdCounter++;
   const promise = new Promise((resolve, reject) => {
     ajaxPromises.set(promiseId, {resolve, reject});
@@ -55,7 +54,7 @@ window.addEventListener('message', (event) => {
         }).constructor;
         const handlerFunction = new AsyncFunction(response.paramName, '$', response.code);
 
-        const result = await handlerFunction(response.paramValue, custom$);
+        const result = await handlerFunction(response.paramValue, $);
 
         // 执行成功，将结果发回
         window.parent.postMessage({success: true, result: result}, '*');
