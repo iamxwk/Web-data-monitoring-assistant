@@ -331,6 +331,24 @@
                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; box-sizing: border-box;">
       </div>
     </div>
+
+    <!-- 添加Headers设置 -->
+    <div class="form-group">
+      <label for="requestHeaders" data-i18n="request_headers">请求头 (Headers)</label>
+      <textarea id="requestHeaders" placeholder='{"Content-Type": "application/json", "Authorization": "Bearer token"}' style="min-height: 80px;"></textarea>
+      <div class="code-helper" data-i18n="request_headers_helper">
+        请输入JSON格式的请求头，例如: {"Content-Type": "application/json", "Authorization": "Bearer token"}
+      </div>
+    </div>
+
+    <!-- 添加Body设置 -->
+    <div class="form-group">
+      <label for="requestBodyEditor" data-i18n="request_body">请求体 (Body)</label>
+      <textarea id="requestBodyEditor" placeholder='{"key": "value"}' style="min-height: 80px;"></textarea>
+      <div class="code-helper" data-i18n="request_body_helper">
+        请输入请求体内容，对于POST/PUT等请求方法有效
+      </div>
+    </div>
     <!--            <div class="code-helper">-->
     <!--                <p>配置jQuery.ajax请求参数，将自动生成请求体配置</p>-->
     <!--            </div>-->

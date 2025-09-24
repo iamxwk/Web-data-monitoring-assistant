@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const requestDataTypeSelect = document.getElementById('requestDataType');
   const requestTimeoutInput = document.getElementById('requestTimeout');
   const requestUrlInput = document.getElementById('requestUrl');
+  // 新增的header和body元素
+  const requestHeadersInput = document.getElementById('requestHeaders');
+  const requestBodyEditorInput = document.getElementById('requestBodyEditor');
 
   // 测试结果模态框元素
   const testResultModal = document.getElementById('testResultModal');
@@ -82,6 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
     requestDataTypeSelect.addEventListener('change', updateRequestBody);
     requestTimeoutInput.addEventListener('input', updateRequestBody);
     requestUrlInput.addEventListener('input', updateRequestBody);
+    requestHeadersInput.addEventListener('input', updateRequestBody);
+    requestBodyEditorInput.addEventListener('input', updateRequestBody);
   }
 
   // 根据表单字段更新请求体
@@ -92,6 +97,26 @@ document.addEventListener('DOMContentLoaded', () => {
       dataType: requestDataTypeSelect.value,
       timeout: parseInt(requestTimeoutInput.value, 10)
     };
+
+    // 添加headers（如果存在）
+    if (requestHeadersInput.value.trim()) {
+      try {
+        requestBody.headers = JSON.parse(requestHeadersInput.value);
+      } catch (e) {
+        // 如果headers不是有效的JSON，就忽略
+        console.warn('Headers不是有效的JSON格式');
+      }
+    }
+
+    // 添加body（如果存在且请求方法不是GET）
+    if (requestBodyEditorInput.value.trim() && requestTypeSelect.value.toLowerCase() !== 'get') {
+      // 尝试解析为JSON，如果失败则作为普通字符串处理
+      try {
+        requestBody.data = JSON.parse(requestBodyEditorInput.value);
+      } catch (e) {
+        requestBody.data = requestBodyEditorInput.value;
+      }
+    }
 
     requestBodyInput.value = JSON.stringify(requestBody);
   }
@@ -122,6 +147,20 @@ document.addEventListener('DOMContentLoaded', () => {
           requestDataTypeSelect.value = requestBody.dataType || 'json';
           requestTimeoutInput.value = requestBody.timeout || 7000;
           requestUrlInput.value = requestBody.url || '';
+
+          // 加载headers和body
+          if (requestBody.headers) {
+            requestHeadersInput.value = JSON.stringify(requestBody.headers, null, 2);
+          }
+
+          if (requestBody.data) {
+            // 如果data是对象，则转换为格式化的JSON字符串
+            if (typeof requestBody.data === 'object') {
+              requestBodyEditorInput.value = JSON.stringify(requestBody.data, null, 2);
+            } else {
+              requestBodyEditorInput.value = requestBody.data;
+            }
+          }
         }
 
         updateRequestBody(); // 更新隐藏字段
@@ -340,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let content = message;
     if(result !== null){
-      content += '\n\n' + JSON.stringify(result, null, 2);
+      content += 'taskData.content = ' + JSON.stringify(result, null, 2);
     }
 
     resultContentElement.textContent = content;
