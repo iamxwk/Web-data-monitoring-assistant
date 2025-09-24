@@ -8,15 +8,15 @@
     "description": "Extension description"
   },
   "add_task": {
-    "message": "Add Task",
+    "message": "Add",
     "description": "Add task button text"
   },
   "import_config": {
-    "message": "Import Config",
+    "message": "Import",
     "description": "Import configuration button text"
   },
   "export_config": {
-    "message": "Export Config",
+    "message": "Export",
     "description": "Export configuration button text"
   },
   "mark_all_read": {
@@ -24,7 +24,7 @@
     "description": "Mark all tasks as read button text"
   },
   "refresh_all": {
-    "message": "Refresh All",
+    "message": "Refresh",
     "description": "Refresh all tasks button text"
   },
   "no_tasks": {

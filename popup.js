@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 元素引用
   const taskListElement = document.getElementById('taskList');
   const addTaskBtn = document.getElementById('addTaskBtn');
+  const settingBtn = document.getElementById('settingBtn');
   const importBtn = document.getElementById('importBtn');
   const exportBtn = document.getElementById('exportBtn');
   const markAllReadBtn = document.getElementById('markAllReadBtn');
@@ -27,6 +28,11 @@ document.addEventListener('DOMContentLoaded', () => {
   addTaskBtn.addEventListener('click', () => {
     // 打开新标签页添加任务
     chrome.tabs.create({url: chrome.runtime.getURL('task-editor.html')});
+  });
+
+  settingBtn.addEventListener('click', () => {
+    // 打开新标签页添加任务
+    chrome.tabs.create({url: chrome.runtime.getURL('settings.html')});
   });
 
   importBtn.addEventListener('click', () => {
