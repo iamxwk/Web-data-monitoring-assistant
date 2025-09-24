@@ -118,29 +118,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  refreshAllBtn.addEventListener('click', async () => {
+  refreshAllBtn.addEventListener('click', async() => {
     showNotification(chrome.i18n.getMessage('refreshing_all_tasks') || '正在刷新所有任务...');
 
-    for (const task of tasks) {
-      if (task.enabled === false) {
+    for(const task of tasks){
+      if(task.enabled === false){
         continue;
       }
-      try {
+      try{
         await new Promise((resolve, reject) => {
           chrome.runtime.sendMessage({
             action: 'checkTask',
             taskId: task.id
           }, (response) => {
-            if (chrome.runtime.lastError) {
+            if(chrome.runtime.lastError){
               reject(new Error(chrome.runtime.lastError.message));
-            } else if (response && response.success) {
+            }else if(response && response.success){
               resolve(response);
-            } else {
+            }else{
               reject(new Error(response ? response.error : 'Unknown error'));
             }
           });
         });
-      } catch (error) {
+      }catch(error){
         console.error(`刷新任务 "${task.title}" 失败:`, error);
         showNotification(chrome.i18n.getMessage('refresh_task_failed', [task.title]), true);
       }
@@ -230,13 +230,16 @@ document.addEventListener('DOMContentLoaded', () => {
       // 选择图标源：优先使用base64图标，其次使用URL图标，最后使用默认图标
       const iconSource = task.iconBase64 || task.iconUrl || 'icon/icon.png';
 
+      // 优化：使用 data-src 延迟加载图片，src 先用一个1x1的透明像素占位
+      const placeholderSrc = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
       // 构建任务HTML
       taskElement.innerHTML = `
         <div class="drag-handle">
           <i class="fas fa-bars"></i>
         </div>
         <div class="task-icon">
-          <img src="${iconSource}" alt="Task Icon" width="24" height="24" loading="lazy">
+          <img src="${placeholderSrc}" data-src="${iconSource}" alt="Task Icon" width="24" height="24">
         </div>
         <div class="task-content">
           <h3 class="task-title">${escapeHtml(task.title)}&nbsp;<small>${lastChecked}</small></h3>
@@ -281,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chrome.tabs.create({
           url: `${chrome.runtime.getURL('task-editor.html')}?id=${task.id}`
         });
-      });
+    });
 
       taskElement.querySelector('.delete-btn').addEventListener('click', () => {
         taskToDelete = task.id;
@@ -306,10 +309,29 @@ document.addEventListener('DOMContentLoaded', () => {
       taskListElement.appendChild(taskElement);
     });
 
+    // 异步加载图片
+    loadVisibleImages();
+
     // 初始化拖拽功能
     initDragAndDrop();
     updateChangedTasksIndicator(); // 更新变化任务指示器
     i18nInit();
+  }
+
+  // 异步加载图片函数
+  function loadVisibleImages(){
+    const images = taskListElement.querySelectorAll('img[data-src]');
+    images.forEach(img => {
+      // 将真实的 src 赋给图片
+      setTimeout(function() {
+        img.src = img.dataset.src;
+        // 添加加载失败时的处理，显示默认图标
+        img.onerror = () => {
+          img.onerror = null; // 防止因默认图标也加载失败导致死循环
+          img.src = 'icon/icon.png';
+        };
+      },50)
+    });
   }
 
   // 标记任务为已读
