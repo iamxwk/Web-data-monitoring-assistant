@@ -1,15 +1,14 @@
 const OFFSCREEN_DOCUMENT_PATH = '/offscreen.html';
 
+// 全局任务队列和状态
+let taskQueue = [];
+let isProcessing = false;
+
 // 帮助函数，用于创建和检查 Offscreen Document
-async function setupOffscreenDocument(){
-  // 检查是否已有 Offscreen Document
-  if(await chrome.offscreen.hasDocument()){
-    // console.log("Offscreen document already exists.");
+async function setupOffscreenDocument() {
+  if (await chrome.offscreen.hasDocument()) {
     return;
   }
-
-  // console.log("Creating offscreen document...");
-  // 创建 Offscreen Document
   await chrome.offscreen.createDocument({
     url: OFFSCREEN_DOCUMENT_PATH,
     reasons: [chrome.offscreen.Reason.DOM_PARSER],
@@ -17,141 +16,152 @@ async function setupOffscreenDocument(){
   });
 }
 
-// 封装的执行用户代码的核心函数
-function executeUserCode(codePayload, sendResponse){
-  // 1. 确保 Offscreen Document 存在
-  setupOffscreenDocument().then(() => {
-    // 2. 向 Offscreen Document 发送消息来执行代码
-    chrome.runtime.sendMessage(codePayload, (result) => {
-      // 检查 chrome.runtime.lastError，这是处理异步响应的重要步骤
-      if(chrome.runtime.lastError){
-        sendResponse({success: false, error: '代码执行失败: ' + chrome.runtime.lastError.message});
-        return;
-      }
-
-      // 3. 将从 offscreen document 收到的结果通过 sendResponse 回传
-      sendResponse(result);
-    });
+// 封装的执行用户代码的核心函数（已改为 Promise）
+function executeUserCode(codePayload) {
+  return new Promise((resolve, reject) => {
+    setupOffscreenDocument().then(() => {
+      chrome.runtime.sendMessage(codePayload, (result) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error('代码执行失败: ' + chrome.runtime.lastError.message));
+          return;
+        }
+        if (result.success) {
+          resolve(result.result);
+        } else {
+          reject(new Error('处理代码执行错误: ' + result.error));
+        }
+      });
+    }).catch(reject);
   });
 }
 
-function setupAllTaskAlarm(){
-  chrome.alarms.clearAll();
-  chrome.storage.local.get('tasks', (result) => {
-    if(!result.tasks){
-      chrome.storage.local.set({tasks: []});
-    }else{
-      // 为已存在的任务设置alarm
-      result.tasks.forEach(task => {
-        setupTaskAlarm(task);
-      });
+// 任务队列处理器：一次只处理一个任务
+async function processTaskQueue() {
+  if (isProcessing || taskQueue.length === 0) {
+    return;
+  }
+  isProcessing = true;
+  const taskId = taskQueue.shift(); // 从队列头部取出一个任务
+
+  try {
+    await checkTask(taskId); // 调用任务检查函数
+  } catch (error) {
+    console.error(`处理任务 ${taskId} 时发生错误: `, error);
+  } finally {
+    isProcessing = false;
+    // 处理完一个任务后，继续处理队列中的下一个
+    if (taskQueue.length > 0) {
+      processTaskQueue();
     }
-  });
+  }
+}
+
+// 将任务添加到队列中，并启动处理器
+function addTaskToQueue(taskId) {
+  if (!taskQueue.includes(taskId)) {
+    taskQueue.push(taskId);
+    processTaskQueue();
+  }
+}
+
+async function setupAllTaskAlarm(){
+  chrome.alarms.clearAll();
+  const result = await chrome.storage.local.get('tasks');
+  const tasks = result.tasks || [];
+  if (tasks.length === 0) {
+    await chrome.storage.local.set({tasks: []});
+  } else {
+    tasks.forEach(task => {
+      setupTaskAlarm(task);
+    });
+  }
 }
 
 // 当扩展安装或更新时
 chrome.runtime.onInstalled.addListener(() => {
-  // 初始化存储
   setupAllTaskAlarm();
+  updateBadgeText();
 });
 
-// 监听alarm触发
+// 当浏览器启动时检查过期任务
+chrome.runtime.onStartup.addListener(() => {
+  console.log("Extension started, checking for overdue tasks...");
+  checkOverdueTasks();
+});
+
+// 监听alarm触发，将任务添加到队列
 chrome.alarms.onAlarm.addListener((alarm) => {
   if(alarm.name.startsWith('task_')){
     const taskId = alarm.name.split('task_')[1];
-    checkTask(taskId);
+    addTaskToQueue(taskId);
   }
 });
 
+// 监听电脑状态变化，如果从休眠中恢复，则检查过期任务
 chrome.idle.onStateChanged.addListener((newState) => {
   console.log(new Date().toLocaleString() + ' 电脑状态变化为:', newState);
   if(newState === 'active'){
-    // 电脑从休眠或锁屏中恢复，处于活跃状态
-    console.log(new Date().toLocaleString() + ' 电脑已从休眠中恢复，闹钟可能已停止。');
-  }else if(newState === 'idle'){
-    // 电脑空闲了一段时间，但还没有进入休眠
-    console.log(new Date().toLocaleString() + ' 电脑处于闲置状态。');
-  }else if(newState === 'locked'){
-    // 电脑被锁屏
-    console.log(new Date().toLocaleString() + ' 电脑处于锁屏状态。');
-  }
-
-  if(newState === 'active'){
-    // 电脑从休眠中恢复，检查任务是否需要立即执行
+    console.log(new Date().toLocaleString() + ' 电脑已从休眠中恢复，检查过期任务。');
+    checkOverdueTasks();
   }
 });
 
-// 监听来自popup和task-editor的消息
+// 监听来自popup和task-editor的消息，将任务添加到队列
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   switch(request.action){
     case 'checkTask':
       if(request.taskId){
-        checkTask(request.taskId, sendResponse);
-        return true; // 保持消息通道开放
+        addTaskToQueue(request.taskId);
+        sendResponse({success: true, message: '任务已添加到队列。'});
       }
       break;
-
     case 'setupAlarm':
       if(request.task){
         setupTaskAlarm(request.task);
         sendResponse({success: true});
       }
       break;
-
     case 'setupAllAlarm':
       setupAllTaskAlarm();
       sendResponse({success: true});
       break;
-
     case 'removeAlarm':
       if(request.taskId){
         chrome.alarms.clear(`task_${request.taskId}`);
         sendResponse({success: true});
       }
       break;
-
     case 'removeAllAlarm':
       chrome.alarms.clearAll();
       sendResponse({success: true});
       break;
-
     case 'testRequest':
       testRequest(request.requestConfig, sendResponse);
       return true;
       break;
-
     case 'testHandler':
       testHandler(request.currentTask, request.requestConfig, request.handlerCode, sendResponse);
       return true;
       break;
-
     case 'ajaxRequest':
       handleAjaxRequest(request, sender, sendResponse);
       return true;
       break;
-
     case 'updateBadge':
       updateBadgeText();
       sendResponse({success: true});
       return true;
       break;
-
     case 'languageChanged':
-      // 语言更改时更新所有相关的UI
       updateBadgeText();
-
-      // 通知所有tabs语言已更改
       chrome.tabs.query({}, (tabs) => {
         tabs.forEach(tab => {
           chrome.tabs.sendMessage(tab.id, {
             action: 'languageChanged',
             language: request.language
-          }, () => {
-            // 忽略错误
-          });
+          }, () => {});
         });
       });
-
       sendResponse({success: true});
       break;
   }
@@ -159,222 +169,172 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // 设置定时任务
 function setupTaskAlarm(task){
-  // 计算间隔时间（分钟）
   const intervalInMinutes = task.frequency.unit === 'hour'
     ? task.frequency.value * 60
     : task.frequency.value;
-
-  // 创建或更新alarm
   chrome.alarms.create(`task_${task.id}`, {
     periodInMinutes: intervalInMinutes
   });
 }
 
 // 检查任务的API变化
-function checkTask(taskId, sendResponse = null){
-  chrome.storage.local.get('tasks', (result) => {
-    const tasks = result.tasks || [];
+async function checkTask(taskId, sendResponse = null) {
+  try {
+    const tasksResult = await chrome.storage.local.get('tasks');
+    const tasks = tasksResult.tasks || [];
     const taskIndex = tasks.findIndex(t => t.id === taskId);
 
-    if(taskIndex === -1){
-      if(sendResponse) sendResponse({success: false, error: '任务不存在'});
+    if (taskIndex === -1) {
+      if (sendResponse) sendResponse({ success: false, error: '任务不存在' });
       return;
     }
 
     const task = tasks[taskIndex];
 
-    // 检查任务是否启用
-    if(task.enabled === false){
-      if(sendResponse) sendResponse({success: true, message: '任务已禁用'});
+    if (task.enabled === false) {
+      if (sendResponse) sendResponse({ success: true, message: '任务已禁用' });
       return;
     }
 
-    console.log(task.title + " 开始检查");
+    console.log(new Date().toLocaleString() + ' ' + task.title + " 开始检查");
 
-    // 执行请求并处理响应
-    executeTaskRequest(task)
-      .then(processedValue => {
-        // 保存上次的值
-        const currentValue = task.currentValue ? task.currentValue.content : null;
-        const newValue = processedValue;
+    const processedValue = await executeTaskRequest(task);
 
-        // 更新任务信息
-        tasks[taskIndex] = {
-          ...task,
-          currentValue: newValue,
-          hasChanges: false,
-          lastChecked: new Date().toISOString()
-        };
+    // 关键步骤：在保存前，重新获取最新版本的 tasks 数组，确保没有竞态条件
+    const latestTasksResult = await chrome.storage.local.get('tasks');
+    const latestTasks = latestTasksResult.tasks || [];
+    const latestTaskIndex = latestTasks.findIndex(t => t.id === taskId);
 
-        // 修改通知逻辑：检查返回值中的 notify 字段
-        if(newValue && newValue.notify === true && task.popupNotification){
-          showNotification(task);
-          tasks[taskIndex].hasChanges = true;
-        }
+    if (latestTaskIndex === -1) {
+      console.log(`任务 ${task.title} 在处理期间被删除，跳过保存。`);
+      return;
+    }
 
-        // 保存更新
-        chrome.storage.local.set({tasks}, () => {
-          if(sendResponse) sendResponse({success: true});
-          // 更新图标上的变化任务数量
-          updateBadgeText();
-        });
+    latestTasks[latestTaskIndex].currentValue = processedValue;
+    latestTasks[latestTaskIndex].lastChecked = new Date().toISOString();
 
-        console.log(task.title + " 结束检查", tasks[taskIndex]);
+    if (processedValue && processedValue.notify === true && task.popupNotification) {
+      showNotification(task);
+      latestTasks[latestTaskIndex].hasChanges = true;
+    } else {
+      latestTasks[latestTaskIndex].hasChanges = false;
+    }
 
-      })
-      .catch(error => {
-        console.error(task.title + ' 任务检查失败:', error);
-        if(sendResponse) sendResponse({success: false, error: error.message});
-      });
-  });
+    await chrome.storage.local.set({ tasks: latestTasks });
+    if (sendResponse) sendResponse({ success: true });
+    updateBadgeText();
+
+    console.log(new Date().toLocaleString() + ' ' + task.title + " 结束检查", latestTasks[latestTaskIndex]);
+
+  } catch (error) {
+    const errorMessage = error.name === 'AbortError'
+      ? `请求超时（${task.requestBody.timeout || 7000}ms）`
+      : error.message;
+
+    console.error(new Date().toLocaleString() + ' ' + task.title + ' 任务检查失败:', errorMessage);
+    if (sendResponse) sendResponse({ success: false, error: errorMessage });
+  }
 }
 
-// 执行任务请求
-function executeTaskRequest(task){
-  return new Promise((resolve, reject) => {
+// 带有重试机制的 fetch 请求，用法和标准 fetch 完全一致
+async function fetchWithRetry(resource, options = {}){
+  const {retries = 3, ...fetchOptions} = options;
+  for(let i = 0; i < retries; i++){
     try{
-      const requestConfig = task.requestBody;
-      const fetchOptions = {
-        method: requestConfig.type || 'get',
-        headers: requestConfig.headers || {},
-        timeout: requestConfig.timeout || 7000
-      };
-
-      if(['post', 'put', 'patch'].includes(fetchOptions.method.toLowerCase()) && requestConfig.data){
-        fetchOptions.body = typeof requestConfig.data === 'object'
-          ? JSON.stringify(requestConfig.data)
-          : requestConfig.data;
-
-        if(!fetchOptions.headers['Content-Type'] && !fetchOptions.headers['content-type']){
-          fetchOptions.headers['Content-Type'] = 'application/json';
-        }
+      const response = await fetch(resource, fetchOptions);
+      if(response.ok){
+        return response;
       }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), fetchOptions.timeout);
-
-      fetch(requestConfig.url, {
-        ...fetchOptions,
-        signal: controller.signal
-      })
-        .then(response => {
-          clearTimeout(timeoutId);
-          return requestConfig.dataType === 'json' ? response.json() : response.text();
-        })
-        .then(response => {
-          // 创建一个隐藏的沙箱标签页来执行代码
-          const taskData = {
-            prevContent: task.currentValue ? task.currentValue.content : undefined,
-            prevExtra: task.currentValue ? task.currentValue.extra : undefined,
-            content: response
-          }
-
-          const payload = {
-            action: 'executeCodeInSandbox',
-            paramName: 'taskData',
-            paramValue: taskData,
-            code: task.responseHandler
-          };
-
-          // 执行代码并处理最终结果
-          executeUserCode(payload, (result) => {
-            if(result.success){
-              resolve(result.result);
-              console.log("✅" + task.title + " 代码执行成功! 最终结果:", result.result);
-              // 在实际应用中，你可能会用这个结果更新UI或存储它
-            }else{
-              reject(new Error('处理代码执行错误: ' + result.error));
-
-              console.error("❌" + task.title + " 代码执行失败! 错误信息:", result.error);
-            }
-          });
-          /*
-          chrome.tabs.create({
-            url: chrome.runtime.getURL('code-executor.html'),
-            active: false,
-            pinned: false
-          }, (tab) => {
-            // 等待页面加载完成
-            setTimeout(() => {
-              // 向沙箱页面发送消息，执行处理代码
-              chrome.tabs.sendMessage(tab.id, {
-                action: 'executeCode',
-                paramName: 'response',
-                paramValue: response,
-                code: task.responseHandler
-              }, (result) => {
-                // 关闭沙箱标签页
-                chrome.tabs.remove(tab.id);
-
-                if(chrome.runtime.lastError){
-                  reject(new Error('代码执行失败: ' + chrome.runtime.lastError.message));
-                  return;
-                }
-
-                if(result.success){
-                  // 验证返回格式
-                  if(result.result && typeof result.result === 'object' &&
-                    'content' in result.result && 'extra' in result.result){
-                    resolve(result.result);
-                  }else{
-                    reject(new Error('返回值处理代码必须返回包含content和extra的对象'));
-                  }
-                }else{
-                  reject(new Error('处理代码执行错误: ' + result.error));
-                }
-              });
-            }, 1000);
-          });
-           */
-        })
-        .catch(error => {
-          clearTimeout(timeoutId);
-          if(error.name === 'AbortError'){
-            reject(new Error(`请求超时（${fetchOptions.timeout}ms）`));
-          }else{
-            reject(new Error('请求失败: ' + error.message));
-          }
-        });
+      throw new Error(`请求失败，状态码: ${response.status}`);
     }catch(error){
-      reject(error);
+      console.warn(`第 ${i + 1} 次尝试失败：`, error.message);
+      if(i < retries - 1){
+        const delay = Math.pow(2, i) * 1000;
+        console.log(`等待 ${delay / 1000} 秒后进行第 ${i + 2} 次重试...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }else{
+        console.error('达到最大重试次数，请求最终失败。');
+        throw error;
+      }
     }
-  });
+  }
+}
+
+// 执行任务请求，并返回处理后的数据
+async function executeTaskRequest(task) {
+  const requestConfig = task.requestBody;
+  const fetchOptions = {
+    method: requestConfig.type || 'get',
+    headers: requestConfig.headers || {},
+    timeout: requestConfig.timeout || 7000
+  };
+  if (['post', 'put', 'patch'].includes(fetchOptions.method.toLowerCase()) && requestConfig.data) {
+    fetchOptions.body = typeof requestConfig.data === 'object'
+      ? JSON.stringify(requestConfig.data)
+      : requestConfig.data;
+    if (!fetchOptions.headers['Content-Type'] && !fetchOptions.headers['content-type']) {
+      fetchOptions.headers['Content-Type'] = 'application/json';
+    }
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), fetchOptions.timeout);
+
+  try {
+    const response = await fetchWithRetry(requestConfig.url, {
+      ...fetchOptions,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    const responseData = requestConfig.dataType === 'json' ? await response.json() : await response.text();
+    console.log(new Date().toLocaleString() + ' ' + task.title + " fetch 返回:", responseData);
+
+    const taskData = {
+      prevContent: task.currentValue ? task.currentValue.content : undefined,
+      prevExtra: task.currentValue ? task.currentValue.extra : undefined,
+      content: responseData
+    };
+    const payload = {
+      action: 'executeCodeInSandbox',
+      paramName: 'taskData',
+      paramValue: taskData,
+      code: task.responseHandler
+    };
+    const processedValue = await executeUserCode(payload);
+    console.log(new Date().toLocaleString() + ' ' + "✅" + task.title + " 代码执行成功! 最终结果:", processedValue);
+    return processedValue;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    console.error(new Date().toLocaleString() + ' ' + task.title + ' 任务执行失败:', error);
+    throw error;
+  }
 }
 
 // 测试请求
 function testRequest(requestConfig, sendResponse){
   try{
-    // 使用fetch API替代XMLHttpRequest
     const fetchOptions = {
       method: requestConfig.type || 'get',
       headers: requestConfig.headers || {},
       timeout: requestConfig.timeout || 7000
     };
-
-    // 添加请求体（适用于POST等方法）
     if(['post', 'put', 'patch'].includes(fetchOptions.method.toLowerCase()) && requestConfig.data){
       fetchOptions.body = typeof requestConfig.data === 'object'
         ? JSON.stringify(requestConfig.data)
         : requestConfig.data;
-
-      // 如果没有设置Content-Type，添加默认值
       if(!fetchOptions.headers['Content-Type'] && !fetchOptions.headers['content-type']){
         fetchOptions.headers['Content-Type'] = 'application/json';
       }
     }
-
-    // 设置超时机制
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), fetchOptions.timeout);
-
     fetch(requestConfig.url, {
       ...fetchOptions,
       signal: controller.signal
     })
       .then(response => {
         clearTimeout(timeoutId);
-
-        // 根据dataType处理响应
         if(requestConfig.dataType === 'json'){
           return response.json();
         }else if(requestConfig.dataType === 'text'){
@@ -382,7 +342,6 @@ function testRequest(requestConfig, sendResponse){
         }else if(requestConfig.dataType === 'blob'){
           return response.blob();
         }
-        // 默认返回文本
         return response.text();
       })
       .then(result => {
@@ -404,26 +363,21 @@ function testRequest(requestConfig, sendResponse){
 // 测试处理代码
 function testHandler(currentTask, requestConfig, handlerCode, sendResponse){
   try{
-    // 先执行请求
     const fetchOptions = {
       method: requestConfig.type || 'get',
       headers: requestConfig.headers || {},
       timeout: requestConfig.timeout || 7000
     };
-
     if(['post', 'put', 'patch'].includes(fetchOptions.method.toLowerCase()) && requestConfig.data){
       fetchOptions.body = typeof requestConfig.data === 'object'
         ? JSON.stringify(requestConfig.data)
         : requestConfig.data;
-
       if(!fetchOptions.headers['Content-Type'] && !fetchOptions.headers['content-type']){
         fetchOptions.headers['Content-Type'] = 'application/json';
       }
     }
-
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), fetchOptions.timeout);
-
     fetch(requestConfig.url, {
       ...fetchOptions,
       signal: controller.signal
@@ -433,71 +387,26 @@ function testHandler(currentTask, requestConfig, handlerCode, sendResponse){
         return requestConfig.dataType === 'json' ? response.json() : response.text();
       })
       .then(response => {
-        // 创建一个隐藏的沙箱标签页来执行代码
         const taskData = {
           prevContent: currentTask && currentTask.currentValue ? currentTask.currentValue.content : undefined,
           prevExtra: currentTask && currentTask.currentValue ? currentTask.currentValue.extra : undefined,
           content: response
         }
-        console.log('task', currentTask);
-        console.log('taskData', taskData);
         const payload = {
           action: 'executeCodeInSandbox',
           paramName: 'taskData',
           paramValue: taskData,
           code: handlerCode
         };
-
-        // 执行代码并处理最终结果
         executeUserCode(payload, (result) => {
           if(result.success){
             sendResponse({success: true, result: result.result});
             console.log("✅ 代码执行成功! 最终结果:", result.result);
-            // 在实际应用中，你可能会用这个结果更新UI或存储它
           }else{
             sendResponse({success: false, error: `处理代码执行错误: ${result.error}`});
-
             console.error("❌ 代码执行失败! 错误信息:", result.error);
           }
         });
-        /*
-        chrome.tabs.create({
-          url: chrome.runtime.getURL('code-executor.html'),
-          active: false,
-          pinned: false
-        }, (tab) => {
-          // 等待页面加载完成
-          setTimeout(() => {
-            // 向沙箱页面发送消息，执行处理代码
-            chrome.tabs.sendMessage(tab.id, {
-              action: 'executeCode',
-              paramName: 'response',
-              paramValue: response,
-              code: handlerCode
-            }, (result) => {
-              // 关闭沙箱标签页
-              chrome.tabs.remove(tab.id);
-
-              if(chrome.runtime.lastError){
-                sendResponse({success: false, error: '代码执行失败: ' + chrome.runtime.lastError.message});
-                return;
-              }
-
-              if(result.success){
-                // 验证返回格式
-                if(result.result && typeof result.result === 'object' &&
-                  'content' in result.result && 'extra' in result.result){
-                  sendResponse({success: true, result: result.result});
-                }else{
-                  sendResponse({success: false, error: '处理代码必须返回包含content和extra的对象'});
-                }
-              }else{
-                sendResponse({success: false, error: `处理代码执行错误: ${result.error}`});
-              }
-            });
-          }, 1000);
-        });
-        */
       })
       .catch(error => {
         clearTimeout(timeoutId);
@@ -521,8 +430,6 @@ function showNotification(task){
     message: `任务 "${task.title}" 检测到数据变化`,
     priority: 2
   });
-
-  // 点击通知打开插件弹窗
   chrome.notifications.onClicked.addListener((notificationId) => {
     if(notificationId === `task_${task.id}_notification`){
       chrome.action.openPopup();
@@ -530,36 +437,31 @@ function showNotification(task){
   });
 }
 
-// 深度比较两个值是否相等
-function isEqual(a, b){
-  // 处理null和undefined
-  if(a === null || a === undefined || b === null || b === undefined){
-    return a === b;
-  }
-
-  // 如果是日期对象，比较时间戳
-  if(a instanceof Date && b instanceof Date){
-    return a.getTime() === b.getTime();
-  }
-
-  // 如果是对象，递归比较
-  if(typeof a === 'object' && typeof b === 'object'){
-    const keysA = Object.keys(a);
-    const keysB = Object.keys(b);
-
-    if(keysA.length !== keysB.length) return false;
-
-    for(const key of keysA){
-      if(!keysB.includes(key) || !isEqual(a[key], b[key])){
-        return false;
-      }
+// 检查过期任务，并将它们添加到队列中
+async function checkOverdueTasks(){
+  const result = await chrome.storage.local.get('tasks');
+  const tasks = result.tasks || [];
+  for(const task of tasks){
+    if(task.enabled === false){
+      continue;
     }
-
-    return true;
+    if(!task.lastChecked){
+      console.log(`Task ${task.title} has never been checked, adding to queue...`);
+      addTaskToQueue(task.id);
+      continue;
+    }
+    const lastCheckedTime = new Date(task.lastChecked).getTime();
+    const intervalInMinutes = task.frequency.unit === 'hour'
+      ? task.frequency.value * 60
+      : task.frequency.value;
+    const intervalInMs = intervalInMinutes * 60 * 1000;
+    const expectedNextCheckTime = lastCheckedTime + intervalInMs;
+    const currentTime = Date.now();
+    if(currentTime >= expectedNextCheckTime){
+      console.log(`Task ${task.title} is overdue, adding to queue...`);
+      addTaskToQueue(task.id);
+    }
   }
-
-  // 基本类型直接比较
-  return a === b;
 }
 
 // 添加更新浏览器图标上数字显示的函数
@@ -568,15 +470,12 @@ function updateBadgeText(){
     const tasks = result.tasks || [];
     const settings = result.settings || {};
     const changedTasksCount = tasks.filter(task => task.hasChanges && task.enabled !== false).length;
-
     if(changedTasksCount > 0){
       chrome.action.setBadgeText({text: changedTasksCount.toString()});
-      chrome.action.setBadgeBackgroundColor({color: '#FF0000'}); // 红色背景
+      chrome.action.setBadgeBackgroundColor({color: '#FF0000'});
     }else{
       chrome.action.setBadgeText({text: ''});
     }
-
-    // 根据用户设置的语言更新徽章标题
     let badgeTitle = 'Web data monitoring assistant';
     if(settings.language){
       switch(settings.language){
@@ -591,17 +490,6 @@ function updateBadgeText(){
           badgeTitle = 'Web data monitoring assistant';
       }
     }
-
     chrome.action.setTitle({title: badgeTitle});
   });
 }
-
-// 当扩展启动时更新徽章文本
-chrome.runtime.onStartup.addListener(() => {
-  updateBadgeText();
-});
-
-// 当安装扩展时更新徽章文本
-chrome.runtime.onInstalled.addListener(() => {
-  updateBadgeText();
-});
