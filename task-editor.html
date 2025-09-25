@@ -3,6 +3,10 @@
 <head>
   <meta charset="utf-8">
   <title data-i18n="edit_task">编辑任务</title>
+  <link rel="stylesheet" href="assets/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/codemirror/lib/codemirror.css">
+  <script src="assets/codemirror/lib/codemirror.js"></script>
+  <script src="assets/codemirror/mode/javascript/javascript.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -240,8 +244,12 @@
       border-top: 1px solid #eee;
       text-align: right;
     }
+
+    .CodeMirror {
+      border: 1px solid #eee;
+      height: auto;
+    }
   </style>
-  <link rel="stylesheet" href="assets/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 <header>
@@ -335,7 +343,8 @@
     <!-- 添加Headers设置 -->
     <div class="form-group">
       <label for="requestHeaders" data-i18n="request_headers">请求头 (Headers)</label>
-      <textarea id="requestHeaders" placeholder='{"Content-Type": "application/json", "Authorization": "Bearer token"}' style="min-height: 80px;"></textarea>
+      <textarea id="requestHeaders" class="code-editor"
+                placeholder='{"Content-Type": "application/json", "Authorization": "Bearer token"}'></textarea>
       <div class="code-helper" data-i18n="request_headers_helper">
         请输入JSON格式的请求头，例如: {"Content-Type": "application/json", "Authorization": "Bearer token"}
       </div>
@@ -344,7 +353,7 @@
     <!-- 添加Body设置 -->
     <div class="form-group">
       <label for="requestBodyEditor" data-i18n="request_body">请求体 (Body)</label>
-      <textarea id="requestBodyEditor" placeholder='{"key": "value"}' style="min-height: 80px;"></textarea>
+      <textarea id="requestBodyEditor" class="code-editor" placeholder='{"key": "value"}'></textarea>
       <div class="code-helper" data-i18n="request_body_helper">
         请输入请求体内容，对于POST/PUT等请求方法有效
       </div>
@@ -362,13 +371,14 @@
 
   <div class="form-group">
     <label for="responseHandler" data-i18n="response_handler">返回值处理代码</label>
-    <textarea id="responseHandler" required></textarea>
+    <textarea id="responseHandler" class="code-editor" required></textarea>
     <div class="code-helper">
       <p data-i18n="response_handler_helper_1">请输入JavaScript代码，必须返回包含content和notify字段的对象。</p>
       <p data-i18n="response_handler_helper_2">content：字符串类型，用于比较数据变化的值</p>
       <p data-i18n="response_handler_helper_3">notify：布尔值类型，true 表示显示提醒</p>
       <p data-i18n="response_handler_helper_4">extra：对象类型，额外信息，可在后续处理中使用</p>
-      <div>示例：<pre>
+      <div>示例：
+        <pre>
 return {
   "content": taskData.content,
   "notify": taskData.content != taskData.prevContent,

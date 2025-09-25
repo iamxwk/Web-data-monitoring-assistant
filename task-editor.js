@@ -32,6 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeResultModal = document.getElementById('closeResultModal');
   const closeResultBtn = document.getElementById('closeResultBtn');
 
+  var codeMirrors = [];
+
   // 当前编辑的任务
   let currentTask = null;
 
@@ -40,6 +42,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 初始化
   init();
+
+  setTimeout(function(){
+    initCodemirror();
+  }, 100)
 
   // 初始化函数
   function init(){
@@ -89,6 +95,22 @@ document.addEventListener('DOMContentLoaded', () => {
     requestBodyEditorInput.addEventListener('input', updateRequestBody);
   }
 
+  function initCodemirror(){
+    document.querySelectorAll('.code-editor').forEach(editorElement => {
+      const editor = CodeMirror.fromTextArea(editorElement, {
+        lineNumbers: true,
+        mode: 'javascript'
+      })
+      codeMirrors.push(editor);
+    })
+  }
+
+  function saveCodeMirror(){
+    codeMirrors.forEach(editor => {
+      editor.save();
+    })
+  }
+
   // 根据表单字段更新请求体
   function updateRequestBody(){
     const requestBody = {
@@ -99,21 +121,21 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // 添加headers（如果存在）
-    if (requestHeadersInput.value.trim()) {
-      try {
+    if(requestHeadersInput.value.trim()){
+      try{
         requestBody.headers = JSON.parse(requestHeadersInput.value);
-      } catch (e) {
+      }catch(e){
         // 如果headers不是有效的JSON，就忽略
         console.warn('Headers不是有效的JSON格式');
       }
     }
 
     // 添加body（如果存在且请求方法不是GET）
-    if (requestBodyEditorInput.value.trim() && requestTypeSelect.value.toLowerCase() !== 'get') {
+    if(requestBodyEditorInput.value.trim() && requestTypeSelect.value.toLowerCase() !== 'get'){
       // 尝试解析为JSON，如果失败则作为普通字符串处理
-      try {
+      try{
         requestBody.data = JSON.parse(requestBodyEditorInput.value);
-      } catch (e) {
+      }catch(e){
         requestBody.data = requestBodyEditorInput.value;
       }
     }
@@ -149,15 +171,15 @@ document.addEventListener('DOMContentLoaded', () => {
           requestUrlInput.value = requestBody.url || '';
 
           // 加载headers和body
-          if (requestBody.headers) {
+          if(requestBody.headers){
             requestHeadersInput.value = JSON.stringify(requestBody.headers, null, 2);
           }
 
-          if (requestBody.data) {
+          if(requestBody.data){
             // 如果data是对象，则转换为格式化的JSON字符串
-            if (typeof requestBody.data === 'object') {
+            if(typeof requestBody.data === 'object'){
               requestBodyEditorInput.value = JSON.stringify(requestBody.data, null, 2);
-            } else {
+            }else{
               requestBodyEditorInput.value = requestBody.data;
             }
           }
@@ -224,6 +246,8 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
 
     try{
+      saveCodeMirror();
+
       // 验证请求体是否为有效的JSON
       let requestBody;
       try{
@@ -317,6 +341,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // 测试请求
   function testRequest(){
     try{
+      saveCodeMirror();
+
       // 解析请求配置
       const requestConfig = JSON.parse(requestBodyInput.value);
 
@@ -345,6 +371,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // 测试处理代码
   function testHandler(){
     try{
+      saveCodeMirror();
+
       // 解析请求配置
       const requestConfig = JSON.parse(requestBodyInput.value);
       const handlerCode = responseHandlerInput.value;
