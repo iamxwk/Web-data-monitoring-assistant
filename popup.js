@@ -206,13 +206,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     taskListElement.innerHTML = '';
 
-    // 对任务进行排序，将有变化的任务排在最前面
+    // 对任务进行排序，将有变化的任务排在最前面，禁用的任务排在最后面
     const sortedTasks = [...tasks].sort((a, b) => {
       // 如果一个任务有变化而另一个没有，则有变化的排在前面
       if(a.hasChanges && !b.hasChanges) return -1;
       if(!a.hasChanges && b.hasChanges) return 1;
+      
+      // 如果一个任务被禁用而另一个没有，则未禁用的排在前面
+      if(a.enabled !== false && b.enabled === false) return -1;
+      if(a.enabled === false && b.enabled !== false) return 1;
 
-      // 如果两个任务都有变化或都没有变化，则保持原有顺序
+      // 如果两个任务都有变化或都没有变化，且启用状态相同，则保持原有顺序
       return 0;
     });
 

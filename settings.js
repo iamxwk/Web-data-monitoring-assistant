@@ -37,7 +37,20 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadSettings(){
     chrome.storage.local.get(['settings', 'tasks'], (result) => {
       const settings = result.settings || {};
-      tasks = result.tasks || [];
+
+      tasks = result.tasks.sort((a, b) => {
+        // 如果一个任务有变化而另一个没有，则有变化的排在前面
+        // 这里不处理是否变化影响排序
+        // if(a.hasChanges && !b.hasChanges) return -1;
+        // if(!a.hasChanges && b.hasChanges) return 1;
+
+        // 如果一个任务被禁用而另一个没有，则未禁用的排在前面
+        if(a.enabled !== false && b.enabled === false) return -1;
+        if(a.enabled === false && b.enabled !== false) return 1;
+
+        // 如果两个任务都有变化或都没有变化，且启用状态相同，则保持原有顺序
+        return 0;
+      });
 
       if(settings.language){
         languageSelect.value = settings.language;
@@ -112,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       tableHTML += `
         <tr data-task-id="${task.id}">
-          <td>${index+1}</td>
+          <td>${index + 1}</td>
           <td>${escapeHtml(task.id)}</td>
           <td>${escapeHtml(task.title)}</td>
           <td>${lastRunTime}</td>
