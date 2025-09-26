@@ -377,13 +377,32 @@
       <p data-i18n="response_handler_helper_2">content：字符串类型，用于比较数据变化的值</p>
       <p data-i18n="response_handler_helper_3">notify：布尔值类型，true 表示显示提醒</p>
       <p data-i18n="response_handler_helper_4">extra：对象类型，额外信息，可在后续处理中使用</p>
-      <div>示例：
+      <div>Return example：
         <pre>
 return {
   "content": taskData.content,
   "notify": taskData.content != taskData.prevContent,
   "extra": {}
 };
+        </pre>
+      </div>
+      <div>Image example：
+        <pre>
+&lt;img data-src="http://www.example.com/test.jpg" /&gt;
+        </pre>
+      <div>Ajax example：
+        <pre>
+var res = await $.ajax({
+  "type": "get",
+  "async": false,
+  "url": "https://www.example.com/api",
+  "dataType": "json",
+  "timeout": 5000
+});
+if (res) {
+  //Output res to view test results
+  return res;
+}
         </pre>
       </div>
     </div>

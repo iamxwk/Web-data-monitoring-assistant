@@ -195,6 +195,14 @@
     "message": "Configuration imported successfully",
     "description": "Configuration import success message"
   },
+  "import_config_description": {
+    "message": "You can import configuration by pasting content or selecting a configuration file",
+    "description": "Import configuration description"
+  },
+  "import_no_data": {
+    "message": "Please provide configuration content to import",
+    "description": "Error message when no data provided for import"
+  },
   "import_failed_format": {
     "message": "Import failed: Incorrect configuration format",
     "description": "Import failed due to incorrect format message"

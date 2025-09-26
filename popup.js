@@ -24,6 +24,32 @@ document.addEventListener('DOMContentLoaded', () => {
   loadTasks();
   i18nInit();
 
+  // 导入配置的函数
+  function importConfiguration(importedTasks) {
+    if (Array.isArray(importedTasks)) {
+      // 为导入的任务生成新ID并设置alarm
+      const newTasks = importedTasks.map(task => {
+        const newTask = {
+          ...task,
+          id: generateId(),
+          currentValue: null,
+          hasChanges: false,
+          lastChecked: null
+        };
+        setupTaskAlarm(newTask);
+        return newTask;
+      });
+
+      chrome.storage.local.set({ tasks: newTasks }, () => {
+        tasks = newTasks;
+        renderTaskList();
+        showNotification(chrome.i18n.getMessage('config_import_success') || '配置导入成功');
+      });
+    } else {
+      showNotification(chrome.i18n.getMessage('import_failed_format') || '导入失败：配置格式不正确', true);
+    }
+  }
+
   // 事件监听
   addTaskBtn.addEventListener('click', () => {
     // 打开新标签页添加任务
@@ -35,52 +61,57 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.tabs.create({url: chrome.runtime.getURL('settings.html')});
   });
 
+  // 添加导入模态框相关元素引用
+  const importModal = document.getElementById('importModal');
+  const cancelImportBtn = document.getElementById('cancelImportBtn');
+  const confirmImportBtn = document.getElementById('confirmImportBtn');
+  const importExportText = document.getElementById('importExportText');
+  const importFileInput = document.getElementById('importFileInput');
+
   importBtn.addEventListener('click', () => {
-    // 创建文件输入元素
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'application/json';
+    // 显示导入模态框
+    importModal.style.display = 'flex';
+    // 清空之前的内容
+    importExportText.value = '';
+    importFileInput.value = '';
+  });
 
-    // 监听文件选择事件
-    fileInput.addEventListener('change', (event) => {
-      const file = event.target.files[0];
-      if(file){
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try{
-            const importedTasks = JSON.parse(e.target.result);
-            if(Array.isArray(importedTasks)){
-              // 为导入的任务生成新ID并设置alarm
-              const newTasks = importedTasks.map(task => {
-                const newTask = {
-                  ...task,
-                  id: generateId(),
-                  currentValue: null,
-                  hasChanges: false,
-                  lastChecked: null
-                };
-                setupTaskAlarm(newTask);
-                return newTask;
-              });
+  cancelImportBtn.addEventListener('click', () => {
+    importModal.style.display = 'none';
+  });
 
-              chrome.storage.local.set({tasks: newTasks}, () => {
-                tasks = newTasks;
-                renderTaskList();
-                showNotification(chrome.i18n.getMessage('config_import_success') || '配置导入成功');
-              });
-            }else{
-              showNotification(chrome.i18n.getMessage('import_failed_format') || '导入失败：配置格式不正确', true);
-            }
-          }catch(error){
-            showNotification(`${chrome.i18n.getMessage('import_failed') || '导入失败'}：${error.message}`, true);
-          }
-        };
-        reader.readAsText(file);
+  confirmImportBtn.addEventListener('click', () => {
+    // 检查是否有粘贴的配置内容
+    if (importExportText.value.trim()) {
+      try {
+        const importedTasks = JSON.parse(importExportText.value);
+        importConfiguration(importedTasks);
+        importModal.style.display = 'none';
+      } catch (error) {
+        showNotification(`${chrome.i18n.getMessage('import_failed') || '导入失败'}：${error.message}`, true);
       }
-    });
+      return;
+    }
 
-    // 触发文件选择对话框
-    fileInput.click();
+    // 检查是否有选择的文件
+    const file = importFileInput.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const importedTasks = JSON.parse(e.target.result);
+          importConfiguration(importedTasks);
+          importModal.style.display = 'none';
+        } catch (error) {
+          showNotification(`${chrome.i18n.getMessage('import_failed') || '导入失败'}：${error.message}`, true);
+        }
+      };
+      reader.readAsText(file);
+      return;
+    }
+
+    // 如果既没有粘贴内容也没有选择文件
+    showNotification(chrome.i18n.getMessage('import_no_data') || '请提供要导入的配置内容', true);
   });
 
   exportBtn.addEventListener('click', () => {

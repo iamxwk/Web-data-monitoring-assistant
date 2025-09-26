@@ -99,7 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.code-editor').forEach(editorElement => {
       const editor = CodeMirror.fromTextArea(editorElement, {
         lineNumbers: true,
-        mode: 'javascript'
+        mode: 'javascript',
+        lineWrapping: true
       })
       codeMirrors.push(editor);
     })

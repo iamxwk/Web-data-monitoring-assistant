@@ -195,6 +195,14 @@
     "message": "配置导入成功",
     "description": "配置导入成功消息"
   },
+  "import_config_description": {
+    "message": "可以通过粘贴配置内容或选择配置文件进行导入",
+    "description": "导入配置描述"
+  },
+  "import_no_data": {
+    "message": "请提供要导入的配置内容",
+    "description": "导入时没有提供数据的错误消息"
+  },
   "import_failed_format": {
     "message": "导入失败：配置格式不正确",
     "description": "因格式不正确导致的导入失败消息"

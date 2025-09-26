@@ -55,6 +55,26 @@
             </div>
         </div>
     </div>
+    
+    <!-- 导入配置模态框 -->
+    <div class="modal" id="importModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="import_config">导入配置</h3>
+            </div>
+            <div class="modal-body">
+                <p data-i18n="import_config_description">可以通过粘贴配置内容或选择配置文件进行导入</p>
+                <textarea id="importExportText" placeholder="在此粘贴配置内容..."></textarea>
+                <div style="margin-top: 15px;">
+                    <input type="file" id="importFileInput" accept=".json" style="width: 100%;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelImportBtn" class="secondary" data-i18n="cancel">取消</button>
+                <button id="confirmImportBtn" data-i18n="import">导入</button>
+            </div>
+        </div>
+    </div>
 
     <script src="jquery.min.js"></script>
     <script src="languageManager.js"></script>
