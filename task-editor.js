@@ -16,6 +16,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const cancelBtn = document.getElementById('cancelBtn');
   const pageTitleElement = document.getElementById('pageTitle');
 
+  // 新增导出相关元素
+  const exportBtn = document.getElementById('exportBtn');
+  const exportConfigModal = document.getElementById('exportConfigModal');
+  const exportConfigTextarea = document.getElementById('exportConfigTextarea');
+  const closeExportModal = document.getElementById('closeExportModal');
+  const closeExportBtn = document.getElementById('closeExportBtn');
+
   // 新增的请求配置元素
   const requestTypeSelect = document.getElementById('requestType');
   const requestDataTypeSelect = document.getElementById('requestDataType');
@@ -85,6 +92,11 @@ document.addEventListener('DOMContentLoaded', () => {
     testHandlerBtn.addEventListener('click', testHandler);
     closeResultModal.addEventListener('click', () => testResultModal.style.display = 'none');
     closeResultBtn.addEventListener('click', () => testResultModal.style.display = 'none');
+
+    // 导出配置相关事件监听
+    exportBtn.addEventListener('click', exportConfig);
+    closeExportModal.addEventListener('click', () => exportConfigModal.style.display = 'none');
+    closeExportBtn.addEventListener('click', () => exportConfigModal.style.display = 'none');
 
     // 监听请求配置字段的变化
     requestTypeSelect.addEventListener('change', updateRequestBody);
@@ -336,6 +348,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }catch(error){
       showError(`保存失败: ${error.message}`);
+    }
+  }
+
+  // 导出配置
+  function exportConfig(){
+    try{
+      saveCodeMirror();
+
+      // 构建任务配置对象
+      const taskConfig = {
+        title: taskTitleInput.value.trim(),
+        pageUrl: pageUrlInput.value.trim(),
+        iconUrl: iconUrlInput.value.trim() || undefined,
+        frequency: {
+          value: parseInt(frequencyValueInput.value, 10),
+          unit: frequencyUnitSelect.value
+        },
+        popupNotification: popupNotificationInput.checked,
+        enabled: enabledInput.checked,
+        requestBody: JSON.parse(requestBodyInput.value),
+        responseHandler: responseHandlerInput.value.trim()
+      };
+
+      // 如果是编辑现有任务，包含任务ID
+      if(currentTask && currentTask.id){
+        taskConfig.id = currentTask.id;
+      }
+
+      // 显示配置在文本区域中
+      exportConfigTextarea.value = '[' + JSON.stringify(taskConfig, null, 2) + ']';
+      exportConfigModal.style.display = 'flex';
+    }catch(error){
+      showError(`导出配置失败: ${error.message}`);
     }
   }
 

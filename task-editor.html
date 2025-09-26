@@ -415,6 +415,9 @@ if (res) {
     <button type="button" id="cancelBtn" data-i18n="cancel">
       <i class="fas fa-times"></i> <span data-i18n="cancel">取消</span>
     </button>
+    <button type="button" id="exportBtn" data-i18n="export_config">
+      <i class="fas fa-file-export"></i> <span data-i18n="export_config">导出配置</span>
+    </button>
     <button type="submit" id="saveBtn" data-i18n="save_task">
       <i class="fas fa-save"></i> <span data-i18n="save_task">保存任务</span>
     </button>
@@ -426,13 +429,29 @@ if (res) {
   <div class="modal-content">
     <div class="modal-header">
       <h3 id="resultTitle" data-i18n="test_result">测试结果</h3>
-      <button class="close-modal" id="closeResultModal">&times;</button>
+      <button type="button" class="close-modal" id="closeResultModal">&times;</button>
     </div>
     <div class="modal-body">
       <div class="result-container" id="resultContent"></div>
     </div>
     <div class="modal-footer">
-      <button id="closeResultBtn" data-i18n="close">关闭</button>
+      <button type="button" id="closeResultBtn" data-i18n="close">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 导出配置模态框 -->
+<div class="modal" id="exportConfigModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 data-i18n="export_config">导出配置</h3>
+      <button type="button" class="close-modal" id="closeExportModal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <textarea id="exportConfigTextarea" readonly style="width: 100%; min-height: 300px; font-family: monospace; resize: vertical;"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button type="button" id="closeExportBtn" data-i18n="close">关闭</button>
     </div>
   </div>
 </div>
