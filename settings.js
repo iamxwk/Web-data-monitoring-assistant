@@ -8,6 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
   const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
+  // 添加清空所有任务相关元素
+  const clearAllModal = document.getElementById('clearAllModal');
+  const cancelClearAllBtn = document.getElementById('cancelClearAllBtn');
+  const confirmClearAllBtn = document.getElementById('confirmClearAllBtn');
+  const confirmText = document.getElementById('confirmText');
+
   // 全局变量
   let tasks = [];
   let taskToDelete = null;
@@ -32,6 +38,26 @@ document.addEventListener('DOMContentLoaded', () => {
         deleteModal.style.display = 'none';
         taskToDelete = null;
       });
+    }
+  });
+
+  // 添加清空所有任务的事件监听
+  cancelClearAllBtn.addEventListener('click', () => {
+    clearAllModal.style.display = 'none';
+    confirmText.value = '';
+    confirmClearAllBtn.disabled = true;
+  });
+
+  confirmText.addEventListener('input', () => {
+    confirmClearAllBtn.disabled = confirmText.value !== 'DELETE';
+  });
+
+  confirmClearAllBtn.addEventListener('click', () => {
+    if (confirmText.value === 'DELETE') {
+      clearAllTasks();
+      clearAllModal.style.display = 'none';
+      confirmText.value = '';
+      confirmClearAllBtn.disabled = true;
     }
   });
 
@@ -144,9 +170,15 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     });
 
+    // 添加清空所有任务按钮
     tableHTML += `
         </tbody>
       </table>
+      <div style="margin-top: 20px; text-align: center;">
+        <button type="button" id="clearAllTasksBtn" style="background-color: #e74c3c; color: white; padding: 10px 20px;">
+          <i class="fas fa-trash-alt"></i> <span data-i18n="clear_all_tasks">清空所有任务</span>
+        </button>
+      </div>
     `;
 
     tasksContainer.innerHTML = tableHTML;
@@ -170,6 +202,14 @@ document.addEventListener('DOMContentLoaded', () => {
         deleteModal.style.display = 'flex';
       });
     });
+
+    // 添加清空所有任务按钮事件监听器
+    const clearAllTasksBtn = document.getElementById('clearAllTasksBtn');
+    if (clearAllTasksBtn) {
+      clearAllTasksBtn.addEventListener('click', () => {
+        clearAllModal.style.display = 'flex';
+      });
+    }
 
     i18nInit();
   }
@@ -220,6 +260,21 @@ document.addEventListener('DOMContentLoaded', () => {
       tasks = updatedTasks;
       renderTasksTable();
       showNotification(languageManager.getMessage('task_deleted') || '任务已删除', 'success');
+    });
+  }
+
+  // 清空所有任务
+  function clearAllTasks(){
+    // 清除所有alarm
+    chrome.runtime.sendMessage({
+      action: 'removeAllAlarm'
+    });
+
+    // 清空任务列表
+    chrome.storage.local.set({tasks: []}, () => {
+      tasks = [];
+      renderTasksTable();
+      showNotification(languageManager.getMessage('all_tasks_cleared') || '所有任务已清空', 'success');
     });
   }
 

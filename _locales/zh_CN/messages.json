@@ -39,6 +39,26 @@
     "message": "确定要删除这个任务吗？此操作不可撤销。",
     "description": "删除确认消息"
   },
+  "confirm_clear_all": {
+    "message": "确认清空所有任务",
+    "description": "确认清空所有任务模态框标题"
+  },
+  "clear_all_warning": {
+    "message": "此操作将删除所有任务，且不可撤销。请输入 DELETE 确认操作：",
+    "description": "清空所有任务警告消息"
+  },
+  "clear_all": {
+    "message": "清空所有任务",
+    "description": "清空所有任务按钮文本"
+  },
+  "clear_all_tasks": {
+    "message": "清空所有任务",
+    "description": "清空所有任务按钮文本"
+  },
+  "all_tasks_cleared": {
+    "message": "所有任务已清空",
+    "description": "所有任务已清空消息"
+  },
   "cancel": {
     "message": "取消",
     "description": "取消按钮文本"

@@ -39,6 +39,26 @@
     "message": "Are you sure you want to delete this task? This action cannot be undone.",
     "description": "Delete confirmation message"
   },
+  "confirm_clear_all": {
+    "message": "Confirm Clear All Tasks",
+    "description": "Confirm clear all tasks modal title"
+  },
+  "clear_all_warning": {
+    "message": "This action will delete all tasks and cannot be undone. Please enter DELETE to confirm:",
+    "description": "Clear all tasks warning message"
+  },
+  "clear_all": {
+    "message": "Clear All",
+    "description": "Clear all button text"
+  },
+  "clear_all_tasks": {
+    "message": "Clear All Tasks",
+    "description": "Clear all tasks button text"
+  },
+  "all_tasks_cleared": {
+    "message": "All tasks cleared",
+    "description": "All tasks cleared message"
+  },
   "cancel": {
     "message": "Cancel",
     "description": "Cancel button text"
