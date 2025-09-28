@@ -179,6 +179,10 @@
     "message": "刷新任務",
     "description": "刷新任務按鈕標題"
   },
+  "mark_read": {
+    "message": "標記為已讀",
+    "description": "標記為已讀按鈕標題"
+  },
   "refreshing_task": {
     "message": "正在刷新 \"$1\"...",
     "description": "正在刷新任務通知消息"
@@ -194,6 +198,14 @@
   "config_import_success": {
     "message": "配置導入成功",
     "description": "配置導入成功消息"
+  },
+  "import_config_description": {
+    "message": "可以通過粘貼配置內容或選擇配置文件進行導入",
+    "description": "導入配置描述"
+  },
+  "import_no_data": {
+    "message": "請提供要導入的配置內容",
+    "description": "導入時沒有提供數據的錯誤消息"
   },
   "import_failed_format": {
     "message": "導入失敗：配置格式不正確",

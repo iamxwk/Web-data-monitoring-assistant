@@ -179,6 +179,10 @@
     "message": "Refresh Task",
     "description": "Refresh task button title"
   },
+  "mark_read": {
+    "message": "Mark Read",
+    "description": "Mark read button title"
+  },
   "refreshing_task": {
     "message": "Refreshing \"$1\"...",
     "description": "Refreshing task notification message"

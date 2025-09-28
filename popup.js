@@ -286,6 +286,9 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
         <div class="task-actions">
+          ${task.hasChanges ? `<button class="task-btn mark-read-btn" data-i18n-title="mark_read" title="已读">
+            <i class="fas fa-check"></i>
+          </button>` : ''}
           <button class="task-btn edit-btn" data-i18n-title="edit_task" title="编辑">
             <i class="fas fa-edit"></i>
           </button>
@@ -340,6 +343,14 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
       });
+      
+      // 如果任务有变化，添加已读按钮事件监听
+      if (task.hasChanges) {
+        taskElement.querySelector('.mark-read-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          markTaskAsRead(task.id);
+        });
+      }
 
       taskListElement.appendChild(taskElement);
     });

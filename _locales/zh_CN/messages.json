@@ -179,6 +179,10 @@
     "message": "刷新任务",
     "description": "刷新任务按钮标题"
   },
+  "mark_read": {
+    "message": "标记为已读",
+    "description": "标记为已读按钮标题"
+  },
   "refreshing_task": {
     "message": "正在刷新 \"$1\"...",
     "description": "正在刷新任务通知消息"
