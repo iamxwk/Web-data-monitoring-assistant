@@ -28,8 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
   confirmDeleteBtn.addEventListener('click', () => {
     if(taskToDelete){
       deleteTask(taskToDelete);
-      deleteModal.style.display = 'none';
-      taskToDelete = null;
+      setTimeout(() => {
+        deleteModal.style.display = 'none';
+        taskToDelete = null;
+      });
     }
   });
 

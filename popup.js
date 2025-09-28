@@ -29,19 +29,38 @@ document.addEventListener('DOMContentLoaded', () => {
     if (Array.isArray(importedTasks)) {
       // 为导入的任务生成新ID并设置alarm
       const newTasks = importedTasks.map(task => {
-        const newTask = {
-          ...task,
-          id: generateId(),
-          currentValue: null,
-          hasChanges: false,
-          lastChecked: null
-        };
-        setupTaskAlarm(newTask);
-        return newTask;
+        // 检查是否已有相同ID的任务
+        const existingTask = tasks.find(t => t.id === task.id);
+        if (existingTask) {
+          // 如果有相同ID的任务，替换它但保留一些原有属性
+          return {
+            ...existingTask, // 保留原有的所有属性
+            ...task, // 用导入的配置覆盖
+            hasChanges: false, // 重置变化状态
+            currentValue: null, // 重置当前值
+            lastChecked: null // 重置上次检查时间
+          };
+        } else {
+          // 如果没有相同ID的任务，创建一个新任务
+          const newTask = {
+            ...task,
+            id: task.id || generateId(), // 如果有taskId就用它，否则生成新ID
+            currentValue: null,
+            hasChanges: false,
+            lastChecked: null
+          };
+          setupTaskAlarm(newTask);
+          return newTask;
+        }
       });
 
-      chrome.storage.local.set({ tasks: newTasks }, () => {
-        tasks = newTasks;
+      // 合并任务列表：保留未在导入中出现的现有任务
+      const taskIdsInImport = newTasks.map(t => t.id);
+      const otherTasks = tasks.filter(t => !taskIdsInImport.includes(t.id));
+      const mergedTasks = [...newTasks, ...otherTasks];
+
+      chrome.storage.local.set({ tasks: mergedTasks }, () => {
+        tasks = mergedTasks;
         renderTaskList();
         showNotification(chrome.i18n.getMessage('config_import_success') || '配置导入成功');
       });
