@@ -135,7 +135,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   exportBtn.addEventListener('click', () => {
     // 直接下载配置文件
-    const dataStr = JSON.stringify(tasks, null, 2);
+    // 创建一个清理过的任务列表副本，不包含 currentValue, hasChanges, lastChecked 属性
+    const cleanTasks = tasks.map(task => {
+      const { currentValue, hasChanges, lastChecked, ...cleanTask } = task;
+      return cleanTask;
+    });
+    
+    const dataStr = JSON.stringify(cleanTasks, null, 2);
     const dataBlob = new Blob([dataStr], {type: 'application/json'});
 
     const exportFileName = `Web-data-monitoring-assistant-config-${new Date().toISOString().slice(0, 10)}.json`;
