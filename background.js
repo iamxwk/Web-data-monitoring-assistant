@@ -555,13 +555,16 @@ function updateBadgeText(){
 // 记录任务历史
 async function recordTaskHistory(taskId, success, error, result) {
   try {
-    // 获取历史记录设置
-    const settingsKey = `taskHistorySettings_${taskId}`;
+    // 获取历史记录
     const historyKey = `taskHistory_${taskId}`;
 
-    const result1 = await chrome.storage.local.get([settingsKey, historyKey]);
-
-    const settings = result1[settingsKey] || { maxHistoryCount: 10 };
+    // 获取任务以获取 maxHistoryCount 设置
+    const taskResult = await chrome.storage.local.get('tasks');
+    const tasks = taskResult.tasks || [];
+    const task = tasks.find(t => t.id === taskId);
+    const maxHistoryCount = task && task.maxHistoryCount ? task.maxHistoryCount : 10;
+    
+    const result1 = await chrome.storage.local.get([historyKey]);
     let history = result1[historyKey] || [];
 
     // 添加新的历史记录
@@ -575,8 +578,8 @@ async function recordTaskHistory(taskId, success, error, result) {
     history.unshift(newRecord); // 添加到开头
 
     // 限制历史记录数量
-    if (history.length > settings.maxHistoryCount) {
-      history = history.slice(0, settings.maxHistoryCount);
+    if (history.length > maxHistoryCount) {
+      history = history.slice(0, maxHistoryCount);
     }
 
     // 保存历史记录
@@ -599,11 +602,10 @@ async function removeTaskAndHistory(taskId) {
   // 过滤掉要删除的任务
   tasks = tasks.filter(task => task.id !== taskId);
 
-  // 删除相关的历史记录和设置
+  // 删除相关的历史记录
   const historyKey = `taskHistory_${taskId}`;
-  const settingsKey = `taskHistorySettings_${taskId}`;
 
-  await chrome.storage.local.remove([historyKey, settingsKey]);
+  await chrome.storage.local.remove([historyKey]);
 
   // 保存更新后的任务列表
   await chrome.storage.local.set({ tasks: tasks });

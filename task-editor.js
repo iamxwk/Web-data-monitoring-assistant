@@ -76,6 +76,9 @@ document.addEventListener('DOMContentLoaded', () => {
       loadTaskForEditing(taskId);
     }else{
       // 新增任务
+      historyBtn.remove();
+      exportBtn.remove();
+
       pageTitleElement.setAttribute('data-i18n', 'add_new_task');
       pageTitleElement.textContent = chrome.i18n.getMessage('add_new_task');
       // 设置默认请求配置
@@ -226,8 +229,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 显示历史记录
-  function showHistory() {
-    if (!currentTask && !taskIdInput.value) {
+  function showHistory(){
+    if(!currentTask && !taskIdInput.value){
       showError('请先保存任务');
       return;
     }
@@ -242,15 +245,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const history = result[historyKey] || [];
 
       // 填充历史记录表格
-      if (history.length === 0) {
+      if(history.length === 0){
         const row = document.createElement('tr');
         row.innerHTML = '<td colspan="2" style="text-align: center;" data-i18n="no_history">暂无历史记录</td>';
         historyTableBody.appendChild(row);
-      } else {
+      }else{
         history.forEach(record => {
           const row = document.createElement('tr');
           const time = new Date(record.timestamp).toLocaleString();
-          const resultText = record.error? record.error : record.result.content;
+          const resultText = record.error ? record.error : record.result.content;
 
           row.innerHTML = `
             <td>${time}</td>
@@ -268,12 +271,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 加载历史记录设置
-  function loadHistorySettings(taskId) {
-    const settingsKey = `taskHistorySettings_${taskId}`;
-    chrome.storage.local.get(settingsKey, (result) => {
-      const settings = result[settingsKey] || {maxHistoryCount: 10};
-      maxHistoryCountInput.value = settings.maxHistoryCount;
-    });
+  function loadHistorySettings(taskId){
+    // maxHistoryCount 现在从任务配置中加载，而不是单独的设置
+    if(currentTask && currentTask.maxHistoryCount !== undefined){
+      maxHistoryCountInput.value = currentTask.maxHistoryCount;
+    }else{
+      maxHistoryCountInput.value = 10; // 默认值
+    }
   }
 
   // 清空历史记录
@@ -373,6 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
           value: parseInt(frequencyValueInput.value, 10),
           unit: frequencyUnitSelect.value
         },
+        maxHistoryCount: parseInt(maxHistoryCountInput.value) || 10,
         popupNotification: popupNotificationInput.checked,
         enabled: enabledInput.checked, // 添加启用状态
         requestBody: requestBody,
@@ -419,13 +424,8 @@ document.addEventListener('DOMContentLoaded', () => {
               tasks: tasks
             };
 
-            // 保存历史记录设置
-            if (taskData.id) {
-              const settingsKey = `taskHistorySettings_${taskData.id}`;
-              settings[settingsKey] = {
-                maxHistoryCount: parseInt(maxHistoryCountInput.value) || 10
-              };
-            }
+            // 移除单独的历史记录设置保存逻辑
+            // maxHistoryCount 现在作为任务属性统一保存
 
             chrome.storage.local.set(settings, () => {
               // 设置定时任务
@@ -448,30 +448,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // 导出配置
   function exportConfig(){
     try{
-      saveCodeMirror();
-
-      // 构建任务配置对象
-      const taskConfig = {
-        title: taskTitleInput.value.trim(),
-        pageUrl: pageUrlInput.value.trim(),
-        iconUrl: iconUrlInput.value.trim() || undefined,
-        frequency: {
-          value: parseInt(frequencyValueInput.value, 10),
-          unit: frequencyUnitSelect.value
-        },
-        popupNotification: popupNotificationInput.checked,
-        enabled: enabledInput.checked,
-        requestBody: JSON.parse(requestBodyInput.value),
-        responseHandler: responseHandlerInput.value.trim()
-      };
-
-      // 如果是编辑现有任务，包含任务ID
-      if(currentTask && currentTask.id){
-        taskConfig.id = currentTask.id;
+      if(!currentTask.id){
+        showError('Save task first');
+        return;
       }
 
+      delete currentTask.currentValue;
+      delete currentTask.hasChanges;
+      delete currentTask.lastChecked;
+
       // 显示配置在文本区域中
-      exportConfigTextarea.value = '[' + JSON.stringify(taskConfig, null, 2) + ']';
+      exportConfigTextarea.value = '[' + JSON.stringify(currentTask, null, 2) + ']';
       exportConfigModal.style.display = 'flex';
     }catch(error){
       showError(`导出配置失败: ${error.message}`);
