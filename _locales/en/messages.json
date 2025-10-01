@@ -1,334 +1,185 @@
 {
   "extension_name": {
-    "message": "Web data monitoring assistant",
-    "description": "Extension name"
+    "message": "Web Data Monitoring Assistant"
   },
   "extension_description": {
-    "message": "Monitor web data changes and notify you of data updates in a timely manner",
-    "description": "Extension description"
+    "message": "Monitor web data changes and notify users"
+  },
+  "popup_title": {
+    "message": "Web Data Monitoring Assistant"
   },
   "add_task": {
-    "message": "Add",
-    "description": "Add task button text"
+    "message": "Add Task"
   },
-  "import_config": {
-    "message": "Import",
-    "description": "Import configuration button text"
-  },
-  "export_config": {
-    "message": "Export",
-    "description": "Export configuration button text"
-  },
-  "mark_all_read": {
-    "message": "Mark All Read",
-    "description": "Mark all tasks as read button text"
-  },
-  "refresh_all": {
-    "message": "Refresh",
-    "description": "Refresh all tasks button text"
+  "settings": {
+    "message": "Settings"
   },
   "no_tasks": {
-    "message": "No monitoring tasks. Click \"Add Task\" to create a new task",
-    "description": "Text displayed when there are no tasks"
+    "message": "No monitoring tasks"
   },
-  "confirm_delete": {
-    "message": "Confirm Delete",
-    "description": "Confirm delete modal title"
-  },
-  "delete_confirmation": {
-    "message": "Are you sure you want to delete this task? This action cannot be undone.",
-    "description": "Delete confirmation message"
-  },
-  "confirm_clear_all": {
-    "message": "Confirm Clear All Tasks",
-    "description": "Confirm clear all tasks modal title"
-  },
-  "clear_all_warning": {
-    "message": "This action will delete all tasks and cannot be undone. Please enter DELETE to confirm:",
-    "description": "Clear all tasks warning message"
-  },
-  "clear_all": {
-    "message": "Clear All",
-    "description": "Clear all button text"
-  },
-  "clear_all_tasks": {
-    "message": "Clear All Tasks",
-    "description": "Clear all tasks button text"
-  },
-  "all_tasks_cleared": {
-    "message": "All tasks cleared",
-    "description": "All tasks cleared message"
-  },
-  "cancel": {
-    "message": "Cancel",
-    "description": "Cancel button text"
-  },
-  "delete": {
-    "message": "Delete",
-    "description": "Delete button text"
+  "check_now": {
+    "message": "Check Now"
   },
   "edit": {
-    "message": "Edit",
-    "description": "Edit button text"
+    "message": "Edit"
+  },
+  "delete": {
+    "message": "Delete"
+  },
+  "confirm_delete": {
+    "message": "Are you sure you want to delete this task?"
+  },
+  "task_enabled": {
+    "message": "Enabled"
+  },
+  "task_disabled": {
+    "message": "Disabled"
+  },
+  "has_changes": {
+    "message": "Has Changes"
+  },
+  "no_changes": {
+    "message": "No Changes"
+  },
+  "last_checked": {
+    "message": "Last Checked"
+  },
+  "never": {
+    "message": "Never"
   },
   "edit_task": {
-    "message": "Edit Task",
-    "description": "Edit task page title"
+    "message": "Edit Task"
   },
   "add_new_task": {
-    "message": "Add New Task",
-    "description": "Add new task page title"
+    "message": "Add New Task"
   },
   "task_title": {
-    "message": "Task Title",
-    "description": "Task title label"
+    "message": "Task Title"
   },
   "task_title_placeholder": {
-    "message": "e.g. Alibaba Cloud account balance monitoring",
-    "description": "Task title placeholder"
+    "message": "Enter task title"
   },
   "page_url": {
-    "message": "Page URL",
-    "description": "Page URL label"
+    "message": "Page URL"
   },
   "page_url_placeholder": {
-    "message": "e.g. https://usercenter2.aliyun.com/",
-    "description": "Page URL placeholder"
+    "message": "https://example.com"
   },
   "icon_url": {
-    "message": "Icon URL (optional)",
-    "description": "Icon URL label"
+    "message": "Icon URL (Optional)"
   },
   "icon_url_placeholder": {
-    "message": "e.g. https://example.com/icon.png",
-    "description": "Icon URL placeholder"
+    "message": "https://example.com/favicon.ico"
   },
   "monitoring_frequency": {
-    "message": "Monitoring Frequency",
-    "description": "Monitoring frequency label"
+    "message": "Monitoring Frequency"
   },
   "minutes": {
-    "message": "Minutes",
-    "description": "Minutes unit"
+    "message": "Minutes"
   },
   "hours": {
-    "message": "Hours",
-    "description": "Hours unit"
+    "message": "Hours"
   },
   "popup_notification": {
-    "message": "Popup notification when data changes",
-    "description": "Popup notification checkbox label"
+    "message": "Popup notification when data changes"
   },
   "enable_task": {
-    "message": "Enable Task",
-    "description": "Enable task checkbox label"
+    "message": "Enable Task"
   },
   "request_config": {
-    "message": "Request Configuration",
-    "description": "Request configuration section title"
-  },
-  "request_url": {
-    "message": "Request URL",
-    "description": "Request URL label"
-  },
-  "request_url_placeholder": {
-    "message": "e.g. https://api.example.com/data",
-    "description": "Request URL placeholder"
+    "message": "Request Configuration"
   },
   "request_method": {
-    "message": "Request Method",
-    "description": "Request method label"
+    "message": "Request Method"
   },
   "data_type": {
-    "message": "Data Type",
-    "description": "Data type label"
+    "message": "Data Type"
   },
   "timeout_ms": {
-    "message": "Timeout (milliseconds)",
-    "description": "Timeout label"
+    "message": "Timeout (ms)"
   },
-  "test_request": {
-    "message": "Test Request",
-    "description": "Test request button text"
+  "request_headers": {
+    "message": "Request Headers"
+  },
+  "request_headers_helper": {
+    "message": "Please enter request headers in JSON format, e.g.: {\"Content-Type\": \"application/json\", \"Authorization\": \"Bearer token\"}"
+  },
+  "request_body": {
+    "message": "Request Body"
+  },
+  "request_body_helper": {
+    "message": "Please enter request body content, valid for POST/PUT and other request methods"
   },
   "response_handler": {
-    "message": "Response Handler Code",
-    "description": "Response handler code label"
+    "message": "Response Handler Code"
   },
   "response_handler_helper_1": {
-    "message": "Please enter JavaScript code that must return an object containing content and notify fields.",
-    "description": "Response handler helper text 1"
+    "message": "Please enter JavaScript code that must return an object containing content and notify fields."
   },
   "response_handler_helper_2": {
-    "message": "content: string type, the value used to compare data changes",
-    "description": "Response handler helper text 2"
+    "message": "content: string type, value used to compare data changes"
   },
   "response_handler_helper_3": {
-    "message": "notify: boolean type, true means show notification",
-    "description": "Response handler helper text 3"
+    "message": "notify: boolean type, true means show notification"
   },
   "response_handler_helper_4": {
-    "message": "extra: object type, additional information that can be used in subsequent processing",
-    "description": "Response handler helper text 4"
+    "message": "extra: object type, additional information that can be used in subsequent processing"
+  },
+  "test_request": {
+    "message": "Test Request"
   },
   "test_handler": {
-    "message": "Test Handler",
-    "description": "Test handler button text"
+    "message": "Test Handler Code"
+  },
+  "cancel": {
+    "message": "Cancel"
   },
   "save_task": {
-    "message": "Save Task",
-    "description": "Save task button text"
+    "message": "Save Task"
   },
   "test_result": {
-    "message": "Test Result",
-    "description": "Test result modal title"
+    "message": "Test Result"
+  },
+  "test_successful": {
+    "message": "Test Successful"
+  },
+  "test_failed": {
+    "message": "Test Failed"
   },
   "close": {
-    "message": "Close",
-    "description": "Close button text"
+    "message": "Close"
   },
-  "changed_tasks": {
-    "message": "tasks have changed",
-    "description": "Text indicating number of changed tasks"
+  "export_config": {
+    "message": "Export Config"
   },
-  "delete_task": {
-    "message": "Delete Task",
-    "description": "Delete task button title"
+  "import_config": {
+    "message": "Import Config"
   },
-  "refresh_task": {
-    "message": "Refresh Task",
-    "description": "Refresh task button title"
+  "confirm_clear_history": {
+    "message": "Are you sure you want to clear the history?"
   },
-  "mark_read": {
-    "message": "Mark Read",
-    "description": "Mark read button title"
+  "history": {
+    "message": "History"
   },
-  "refreshing_task": {
-    "message": "Refreshing \"$1\"...",
-    "description": "Refreshing task notification message"
+  "run_time": {
+    "message": "Run Time"
   },
-  "refreshed_task": {
-    "message": "Refreshed \"$1\"",
-    "description": "Refreshed task notification message"
+  "run_result": {
+    "message": "Run Result"
   },
-  "refresh_failed": {
-    "message": "Refresh failed: $1",
-    "description": "Refresh failed notification message"
+  "max_history_count": {
+    "message": "Max History Count"
   },
-  "config_import_success": {
-    "message": "Configuration imported successfully",
-    "description": "Configuration import success message"
+  "clear_history": {
+    "message": "Clear History"
   },
-  "import_config_description": {
-    "message": "You can import configuration by pasting content or selecting a configuration file",
-    "description": "Import configuration description"
+  "no_history": {
+    "message": "No history records"
   },
-  "import_no_data": {
-    "message": "Please provide configuration content to import",
-    "description": "Error message when no data provided for import"
+  "success": {
+    "message": "Success"
   },
-  "import_failed_format": {
-    "message": "Import failed: Incorrect configuration format",
-    "description": "Import failed due to incorrect format message"
-  },
-  "import_failed": {
-    "message": "Import failed",
-    "description": "Import failed message"
-  },
-  "config_downloaded": {
-    "message": "Configuration downloaded",
-    "description": "Configuration downloaded message"
-  },
-  "all_marked_read": {
-    "message": "All tasks marked as read",
-    "description": "All tasks marked as read message"
-  },
-  "refreshing_all_tasks": {
-    "message": "Refreshing all tasks...",
-    "description": "Refreshing all tasks message"
-  },
-  "refresh_task_failed": {
-    "message": "Failed to refresh task \"$1\"",
-    "description": "Refresh task failed message"
-  },
-  "all_tasks_refreshed": {
-    "message": "All tasks refreshed",
-    "description": "All tasks refreshed message"
-  },
-  "task_deleted": {
-    "message": "Task deleted",
-    "description": "Task deleted message"
-  },
-  "task_marked_read": {
-    "message": "Task marked as read",
-    "description": "Task marked as read message"
-  },
-  "task_order_updated": {
-    "message": "Task order updated",
-    "description": "Task order updated message"
-  },
-  "settings_title": {
-    "message": "Settings",
-    "description": "Settings page title"
-  },
-  "language_setting": {
-    "message": "Interface Language",
-    "description": "Language setting label"
-  },
-  "use_browser_language": {
-    "message": "Use browser language",
-    "description": "Use browser language option"
-  },
-  "english": {
-    "message": "English",
-    "description": "English language option"
-  },
-  "chinese_simplified": {
-    "message": "简体中文",
-    "description": "Simplified Chinese language option"
-  },
-  "chinese_traditional": {
-    "message": "繁體中文",
-    "description": "Traditional Chinese language option"
-  },
-  "save": {
-    "message": "Save",
-    "description": "Save button text"
-  },
-  "settings_saved": {
-    "message": "Settings saved",
-    "description": "Settings saved notification"
-  },
-  "task_management": {
-    "message": "Task Management",
-    "description": "Task management section title"
-  },
-  "task_id": {
-    "message": "Task ID",
-    "description": "Task ID column header"
-  },
-  "last_run_time": {
-    "message": "Last Run Time",
-    "description": "Last run time column header"
-  },
-  "next_run_time": {
-    "message": "Next Run Time",
-    "description": "Next run time column header"
-  },
-  "actions": {
-    "message": "Actions",
-    "description": "Actions column header"
-  },
-  "never_ran": {
-    "message": "Never ran",
-    "description": "Text for tasks that have never run"
-  },
-  "not_scheduled": {
-    "message": "Not scheduled",
-    "description": "Text for tasks that are not scheduled"
-  },
-  "calculation_error": {
-    "message": "Calculation error",
-    "description": "Text for calculation errors"
+  "failed": {
+    "message": "Failed"
   }
 }

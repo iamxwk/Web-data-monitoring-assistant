@@ -156,6 +156,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       chrome.alarms.clearAll();
       sendResponse({success: true});
       break;
+    case 'removeTaskAndHistory':
+      if(request.taskId){
+        removeTaskAndHistory(request.taskId).then(() => {
+          sendResponse({success: true});
+        });
+        return true; // 异步
+      }
+      break;
     case 'testRequest':
       testRequest(request.requestConfig, sendResponse);
       return true;
@@ -280,6 +288,9 @@ async function checkTask(taskId, sendResponse = null){
 
     console.log(`${new Date().toLocaleString()} ${taskTitle} 结束检查`, task);
 
+    // 记录成功的历史记录
+    await recordTaskHistory(taskId, true, null, processedValue);
+
   }catch(error){
     const errorMessage = error.name === 'AbortError'
       ? `请求超时`
@@ -287,6 +298,9 @@ async function checkTask(taskId, sendResponse = null){
 
     console.error(`${new Date().toLocaleString()} ${taskTitle} 任务检查失败:`, errorMessage);
     if(sendResponse) sendResponse({success: false, error: errorMessage});
+
+    // 记录失败的历史记录
+    await recordTaskHistory(taskId, false, errorMessage, null);
   }
 }
 
@@ -536,4 +550,66 @@ function updateBadgeText(){
     }
     chrome.action.setTitle({title: badgeTitle});
   });
+}
+
+// 记录任务历史
+async function recordTaskHistory(taskId, success, error, result) {
+  try {
+    // 获取历史记录设置
+    const settingsKey = `taskHistorySettings_${taskId}`;
+    const historyKey = `taskHistory_${taskId}`;
+
+    const result1 = await chrome.storage.local.get([settingsKey, historyKey]);
+
+    const settings = result1[settingsKey] || { maxHistoryCount: 10 };
+    let history = result1[historyKey] || [];
+
+    // 添加新的历史记录
+    const newRecord = {
+      timestamp: new Date().toISOString(),
+      success: success,
+      error: error,
+      result: result
+    };
+
+    history.unshift(newRecord); // 添加到开头
+
+    // 限制历史记录数量
+    if (history.length > settings.maxHistoryCount) {
+      history = history.slice(0, settings.maxHistoryCount);
+    }
+
+    // 保存历史记录
+    const saveObj = {};
+    saveObj[historyKey] = history;
+    await chrome.storage.local.set(saveObj);
+
+    console.log(`已记录任务 ${taskId} 的历史，当前历史记录数: ${history.length}`);
+  } catch (err) {
+    console.error('记录任务历史失败:', err);
+  }
+}
+
+// 删除任务时同时删除历史记录
+async function removeTaskAndHistory(taskId) {
+  // 获取所有任务
+  const result = await chrome.storage.local.get('tasks');
+  let tasks = result.tasks || [];
+
+  // 过滤掉要删除的任务
+  tasks = tasks.filter(task => task.id !== taskId);
+
+  // 删除相关的历史记录和设置
+  const historyKey = `taskHistory_${taskId}`;
+  const settingsKey = `taskHistorySettings_${taskId}`;
+
+  await chrome.storage.local.remove([historyKey, settingsKey]);
+
+  // 保存更新后的任务列表
+  await chrome.storage.local.set({ tasks: tasks });
+
+  // 清除任务的闹钟
+  await chrome.alarms.clear(`task_${taskId}`);
+
+  return tasks;
 }

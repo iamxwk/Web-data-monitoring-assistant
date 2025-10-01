@@ -23,6 +23,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeExportModal = document.getElementById('closeExportModal');
   const closeExportBtn = document.getElementById('closeExportBtn');
 
+  // 新增历史记录相关元素
+  const historyBtn = document.getElementById('historyBtn');
+  const historyModal = document.getElementById('historyModal');
+  const closeHistoryModal = document.getElementById('closeHistoryModal');
+  const closeHistoryBtn = document.getElementById('closeHistoryBtn');
+  const historyTableBody = document.getElementById('historyTableBody');
+  const maxHistoryCountInput = document.getElementById('maxHistoryCount');
+  const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
   // 新增的请求配置元素
   const requestTypeSelect = document.getElementById('requestType');
   const requestDataTypeSelect = document.getElementById('requestDataType');
@@ -97,6 +106,12 @@ document.addEventListener('DOMContentLoaded', () => {
     exportBtn.addEventListener('click', exportConfig);
     closeExportModal.addEventListener('click', () => exportConfigModal.style.display = 'none');
     closeExportBtn.addEventListener('click', () => exportConfigModal.style.display = 'none');
+
+    // 历史记录相关事件监听
+    historyBtn.addEventListener('click', showHistory);
+    closeHistoryModal.addEventListener('click', () => historyModal.style.display = 'none');
+    closeHistoryBtn.addEventListener('click', () => historyModal.style.display = 'none');
+    clearHistoryBtn.addEventListener('click', clearHistory);
 
     // 监听请求配置字段的变化
     requestTypeSelect.addEventListener('change', updateRequestBody);
@@ -200,11 +215,76 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateRequestBody(); // 更新隐藏字段
         responseHandlerInput.value = currentTask.responseHandler;
+
+        // 加载历史记录设置
+        loadHistorySettings(taskId);
       }else{
         showError('未找到指定的任务');
         setTimeout(() => window.close(), 2000);
       }
     });
+  }
+
+  // 显示历史记录
+  function showHistory(){
+    if(!currentTask && !taskIdInput.value){
+      showError('请先保存任务');
+      return;
+    }
+
+    // 清空历史记录表格
+    historyTableBody.innerHTML = '';
+
+    // 获取任务的历史记录
+    const taskId = currentTask ? currentTask.id : taskIdInput.value;
+    const historyKey = `taskHistory_${taskId}`;
+    chrome.storage.local.get(historyKey, (result) => {
+      const history = result[historyKey] || [];
+
+      // 填充历史记录表格
+      if(history.length === 0){
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="2" style="text-align: center;" data-i18n="no_history">暂无历史记录</td>';
+        historyTableBody.appendChild(row);
+      }else{
+        history.forEach(record => {
+          const row = document.createElement('tr');
+          const time = new Date(record.timestamp).toLocaleString();
+          const resultText = record.error ? record.error : record.result.content;
+
+          row.innerHTML = `
+            <td>${time}</td>
+            <td>${resultText}</td>
+          `;
+          historyTableBody.appendChild(row);
+        });
+      }
+
+      // 显示模态框
+      historyModal.style.display = 'flex';
+    });
+  }
+
+  // 加载历史记录设置
+  function loadHistorySettings(taskId){
+    const settingsKey = `taskHistorySettings_${taskId}`;
+    chrome.storage.local.get(settingsKey, (result) => {
+      const settings = result[settingsKey] || {maxHistoryCount: 10};
+      maxHistoryCountInput.value = settings.maxHistoryCount;
+    });
+  }
+
+  // 清空历史记录
+  function clearHistory(){
+    if(!currentTask) return;
+
+    if(confirm(chrome.i18n.getMessage('confirm_clear_history') || '确定要清空历史记录吗？')){
+      const historyKey = `taskHistory_${currentTask.id}`;
+      chrome.storage.local.remove(historyKey, () => {
+        // 重新显示历史记录（将为空）
+        showHistory();
+      });
+    }
   }
 
   // 将图片URL转换为base64编码
@@ -332,8 +412,20 @@ document.addEventListener('DOMContentLoaded', () => {
               tasks.push(taskData);
             }
 
-            // 保存任务并设置定时
-            chrome.storage.local.set({tasks}, () => {
+            // 保存任务和历史记录设置
+            const settings = {
+              tasks: tasks
+            };
+
+            // 保存历史记录设置
+            if(taskData.id){
+              const settingsKey = `taskHistorySettings_${taskData.id}`;
+              settings[settingsKey] = {
+                maxHistoryCount: parseInt(maxHistoryCountInput.value) || 10
+              };
+            }
+
+            chrome.storage.local.set(settings, () => {
               // 设置定时任务
               chrome.runtime.sendMessage({
                 action: 'setupAlarm',

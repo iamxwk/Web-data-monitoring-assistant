@@ -165,6 +165,38 @@
       background-color: #005a9e;
     }
 
+    /* 历史记录表格样式 */
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .history-table th,
+    .history-table td {
+      padding: 3px 5px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .history-table th {
+      background-color: #f8f9fa;
+      font-weight: 600;
+      color: #444;
+    }
+
+    .history-table tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    .history-table .success {
+      color: #2ecc71;
+    }
+
+    .history-table .failed {
+      color: #e74c3c;
+    }
+
     /* 测试结果模态框 */
     .modal {
       display: none;
@@ -249,6 +281,21 @@
       border: 1px solid #eee;
       height: auto;
     }
+
+    .history-table {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .history-table a {
+      font-size: 12px;
+      color: #666;
+      text-decoration: none;
+    }
+
+    .history-table a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -261,6 +308,20 @@
 
 <form id="taskForm">
   <input type="hidden" id="taskId">
+
+  <div class="form-group">
+    <div class="checkbox-group">
+      <input type="checkbox" id="popupNotification" checked>
+      <label for="popupNotification" data-i18n="popup_notification">数据变化时弹窗提醒</label>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="checkbox-group">
+      <input type="checkbox" id="enabled" checked>
+      <label for="enabled" data-i18n="enable_task">启用任务</label>
+    </div>
+  </div>
 
   <div class="form-group">
     <label for="taskTitle" data-i18n="task_title">任务标题</label>
@@ -289,17 +350,8 @@
   </div>
 
   <div class="form-group">
-    <div class="checkbox-group">
-      <input type="checkbox" id="popupNotification" checked>
-      <label for="popupNotification" data-i18n="popup_notification">数据变化时弹窗提醒</label>
-    </div>
-  </div>
-
-  <div class="form-group">
-    <div class="checkbox-group">
-      <input type="checkbox" id="enabled" checked>
-      <label for="enabled" data-i18n="enable_task">启用任务</label>
-    </div>
+    <label for="maxHistoryCount" data-i18n="max_history_count">最大历史记录数</label>
+    <input type="number" id="maxHistoryCount" min="1" max="100" value="10">
   </div>
 
   <div class="form-group">
@@ -418,6 +470,9 @@ if (res) {
     <button type="button" id="exportBtn" data-i18n="export_config">
       <i class="fas fa-file-export"></i> <span data-i18n="export_config">导出配置</span>
     </button>
+    <button type="button" id="historyBtn" data-i18n="history">
+      <i class="fas fa-history"></i> <span data-i18n="history">历史记录</span>
+    </button>
     <button type="submit" id="saveBtn" data-i18n="save_task">
       <i class="fas fa-save"></i> <span data-i18n="save_task">保存任务</span>
     </button>
@@ -452,6 +507,37 @@ if (res) {
     </div>
     <div class="modal-footer">
       <button type="button" id="closeExportBtn" data-i18n="close">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 历史记录模态框 -->
+<div class="modal" id="historyModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 data-i18n="history">历史记录</h3>
+      <button type="button" class="close-modal" id="closeHistoryModal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="historyTableContainer">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th data-i18n="run_time">运行时间</th>
+              <th data-i18n="run_result">运行结果</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+            <!-- 历史记录将通过JavaScript动态填充 -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer" style="display: flex; justify-content: space-between;">
+      <button type="button" id="clearHistoryBtn" data-i18n="clear_history">清空历史</button>
+      <div>
+        <button type="button" id="closeHistoryBtn" data-i18n="close">关闭</button>
+      </div>
     </div>
   </div>
 </div>

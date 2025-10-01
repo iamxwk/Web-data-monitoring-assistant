@@ -214,11 +214,13 @@ document.addEventListener('DOMContentLoaded', () => {
         taskId: taskToDelete
       });
 
-      // 删除任务
-      const updatedTasks = tasks.filter(task => task.id !== taskToDelete);
-      chrome.storage.local.set({tasks: updatedTasks}, () => {
-        tasks = updatedTasks;
-        renderTaskList();
+      // 删除任务及其历史记录
+      chrome.runtime.sendMessage({
+        action: 'removeTaskAndHistory',
+        taskId: taskToDelete
+      }, () => {
+        // 删除任务后重新加载任务列表
+        loadTasks();
         deleteModal.style.display = 'none';
         taskToDelete = null;
         showNotification(chrome.i18n.getMessage('task_deleted') || '任务已删除');
