@@ -48,9 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmClearAllBtn.disabled = true;
   });
 
-  confirmText.addEventListener('input', () => {
-    confirmClearAllBtn.disabled = confirmText.value !== 'DELETE';
-  });
+  // confirmText.addEventListener('input', () => {
+  //   confirmClearAllBtn.disabled = confirmText.value !== 'DELETE';
+  // });
 
   confirmClearAllBtn.addEventListener('click', () => {
     if (confirmText.value === 'DELETE') {
@@ -58,6 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
       clearAllModal.style.display = 'none';
       confirmText.value = '';
       confirmClearAllBtn.disabled = true;
+    }else{
+      alert(chrome.i18n.getMessage('clear_all_warning') || 'This operation will delete all tasks and cannot be undone. Please enter DELETE to confirm');
     }
   });
 

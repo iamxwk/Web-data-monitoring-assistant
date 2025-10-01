@@ -232,5 +232,41 @@
   },
   "changed_tasks": {
     "message": "tasks have changes"
+  },
+  "language_setting": {
+    "message": "Interface Language"
+  },
+  "use_browser_language": {
+    "message": "Use browser language"
+  },
+  "english": {
+    "message": "English"
+  },
+  "chinese_simplified": {
+    "message": "简体中文"
+  },
+  "chinese_traditional": {
+    "message": "繁體中文"
+  },
+  "save": {
+    "message": "Save"
+  },
+  "settings_saved": {
+    "message": "Settings saved"
+  },
+  "clear_all_tasks": {
+    "message": "Clear All Tasks"
+  },
+  "confirm_clear_all": {
+    "message": "Confirm Clear All Tasks"
+  },
+  "clear_all_warning": {
+    "message": "This operation will delete all tasks and cannot be undone. Please enter DELETE to confirm:"
+  },
+  "clear_all": {
+    "message": "Clear All Tasks"
+  },
+  "all_tasks_cleared": {
+    "message": "All tasks cleared"
   }
 }
