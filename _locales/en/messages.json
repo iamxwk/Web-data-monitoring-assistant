@@ -150,10 +150,10 @@
     "message": "Close"
   },
   "export_config": {
-    "message": "Export Config"
+    "message": "Export"
   },
   "import_config": {
-    "message": "Import Config"
+    "message": "Import"
   },
   "confirm_clear_history": {
     "message": "Are you sure you want to clear the history?"
@@ -181,5 +181,56 @@
   },
   "failed": {
     "message": "Failed"
+  },
+  "mark_all_read": {
+    "message": "Mark All Read"
+  },
+  "refresh_all": {
+    "message": "Refresh All"
+  },
+  "settings_title": {
+    "message": "Settings"
+  },
+  "refreshing_task": {
+    "message": "Refreshing \"$1\"..."
+  },
+  "refreshed_task": {
+    "message": "Refreshed \"$1\""
+  },
+  "refresh_failed": {
+    "message": "Refresh failed: $1"
+  },
+  "delete_confirmation": {
+    "message": "Are you sure you want to delete this task? This action cannot be undone."
+  },
+  "task_management": {
+    "message": "Task Management"
+  },
+  "task_id": {
+    "message": "Task ID"
+  },
+  "last_run_time": {
+    "message": "Last Run Time"
+  },
+  "next_run_time": {
+    "message": "Next Run Time"
+  },
+  "actions": {
+    "message": "Actions"
+  },
+  "never_ran": {
+    "message": "Never Ran"
+  },
+  "not_scheduled": {
+    "message": "Not Scheduled"
+  },
+  "calculation_error": {
+    "message": "Calculation Error"
+  },
+  "loading": {
+    "message": "Loading..."
+  },
+  "changed_tasks": {
+    "message": "tasks have changes"
   }
 }

@@ -181,5 +181,56 @@
   },
   "failed": {
     "message": "失败"
+  },
+  "mark_all_read": {
+    "message": "全部已读"
+  },
+  "refresh_all": {
+    "message": "全部刷新"
+  },
+  "settings_title": {
+    "message": "设置"
+  },
+  "refreshing_task": {
+    "message": "正在刷新 \"$1\"..."
+  },
+  "refreshed_task": {
+    "message": "已刷新 \"$1\""
+  },
+  "refresh_failed": {
+    "message": "刷新失败: $1"
+  },
+  "delete_confirmation": {
+    "message": "确定要删除这个任务吗？此操作不可撤销。"
+  },
+  "task_management": {
+    "message": "任务管理"
+  },
+  "task_id": {
+    "message": "任务ID"
+  },
+  "last_run_time": {
+    "message": "上次运行时间"
+  },
+  "next_run_time": {
+    "message": "下次运行时间"
+  },
+  "actions": {
+    "message": "操作"
+  },
+  "never_ran": {
+    "message": "从未运行"
+  },
+  "not_scheduled": {
+    "message": "未安排"
+  },
+  "calculation_error": {
+    "message": "计算错误"
+  },
+  "loading": {
+    "message": "加载中..."
+  },
+  "changed_tasks": {
+    "message": "个任务有变化"
   }
 }

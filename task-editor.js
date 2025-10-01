@@ -226,8 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 显示历史记录
-  function showHistory(){
-    if(!currentTask && !taskIdInput.value){
+  function showHistory() {
+    if (!currentTask && !taskIdInput.value) {
       showError('请先保存任务');
       return;
     }
@@ -242,15 +242,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const history = result[historyKey] || [];
 
       // 填充历史记录表格
-      if(history.length === 0){
+      if (history.length === 0) {
         const row = document.createElement('tr');
         row.innerHTML = '<td colspan="2" style="text-align: center;" data-i18n="no_history">暂无历史记录</td>';
         historyTableBody.appendChild(row);
-      }else{
+      } else {
         history.forEach(record => {
           const row = document.createElement('tr');
           const time = new Date(record.timestamp).toLocaleString();
-          const resultText = record.error ? record.error : record.result.content;
+          const resultText = record.error? record.error : record.result.content;
 
           row.innerHTML = `
             <td>${time}</td>
@@ -262,11 +262,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 显示模态框
       historyModal.style.display = 'flex';
+      // 初始化国际化
+      i18nInit();
     });
   }
 
   // 加载历史记录设置
-  function loadHistorySettings(taskId){
+  function loadHistorySettings(taskId) {
     const settingsKey = `taskHistorySettings_${taskId}`;
     chrome.storage.local.get(settingsKey, (result) => {
       const settings = result[settingsKey] || {maxHistoryCount: 10};
@@ -418,7 +420,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             // 保存历史记录设置
-            if(taskData.id){
+            if (taskData.id) {
               const settingsKey = `taskHistorySettings_${taskData.id}`;
               settings[settingsKey] = {
                 maxHistoryCount: parseInt(maxHistoryCountInput.value) || 10

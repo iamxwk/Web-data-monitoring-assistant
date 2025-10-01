@@ -330,5 +330,45 @@
   "calculation_error": {
     "message": "計算錯誤",
     "description": "計算錯誤的文本"
+  },
+  "loading": {
+    "message": "加載中...",
+    "description": "加載中文本"
+  },
+  "confirm_clear_history": {
+    "message": "確定要清空歷史記錄嗎？",
+    "description": "確認清空歷史記錄"
+  },
+  "history": {
+    "message": "歷史記錄",
+    "description": "歷史記錄"
+  },
+  "run_time": {
+    "message": "運行時間",
+    "description": "運行時間"
+  },
+  "run_result": {
+    "message": "運行結果",
+    "description": "運行結果"
+  },
+  "max_history_count": {
+    "message": "最大歷史記錄數",
+    "description": "最大歷史記錄數"
+  },
+  "clear_history": {
+    "message": "清空歷史",
+    "description": "清空歷史"
+  },
+  "no_history": {
+    "message": "暫無歷史記錄",
+    "description": "暫無歷史記錄"
+  },
+  "success": {
+    "message": "成功",
+    "description": "成功"
+  },
+  "failed": {
+    "message": "失敗",
+    "description": "失敗"
   }
 }
