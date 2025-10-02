@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 渲染任务表格
-  function renderTasksTable(){
+  async function renderTasksTable(){
     if(tasks.length === 0){
       tasksContainer.innerHTML = '<div class="no-tasks" data-i18n="no_tasks">暂无监控任务</div>';
       i18nInit();
@@ -185,11 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tasksContainer.innerHTML = tableHTML;
 
-    // 获取所有任务的下次运行时间
-    tasks.forEach(task => {
-      getNextRunTime(task.id);
-    });
-
     // 添加编辑和删除按钮事件监听器
     document.querySelectorAll('.edit-btn').forEach(button => {
       button.addEventListener('click', (e) => {
@@ -207,13 +202,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 添加清空所有任务按钮事件监听器
     const clearAllTasksBtn = document.getElementById('clearAllTasksBtn');
-    if (clearAllTasksBtn) {
+    if(clearAllTasksBtn){
       clearAllTasksBtn.addEventListener('click', () => {
         clearAllModal.style.display = 'flex';
       });
     }
 
-    i18nInit();
+    await i18nInit();
+
+    // 获取所有任务的下次运行时间
+    tasks.forEach(task => {
+      getNextRunTime(task.id);
+    });
   }
 
   // 获取任务的下次运行时间
