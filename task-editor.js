@@ -250,12 +250,13 @@ document.addEventListener('DOMContentLoaded', () => {
         row.innerHTML = '<td colspan="2" style="text-align: center;" data-i18n="no_history">暂无历史记录</td>';
         historyTableBody.appendChild(row);
       }else{
-        history.forEach(record => {
+        history.forEach((record,idx) => {
           const row = document.createElement('tr');
           const time = new Date(record.timestamp).toLocaleString();
           const resultText = record.error ? record.error : record.result.content;
 
           row.innerHTML = `
+            <td>${idx+1}</td>
             <td>${time}</td>
             <td>${resultText}</td>
           `;
